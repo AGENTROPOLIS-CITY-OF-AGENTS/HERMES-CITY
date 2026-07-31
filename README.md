@@ -198,6 +198,33 @@ Operator intent
 
 ---
 
+## Nous Tool Gateway Lane
+
+The Nous Tool Gateway is tracked as an optional managed capability corridor for approved external providers and MCP-style integrations.
+
+It sits beneath HERMES Dispatch, Model Council, MCP Registry, and the Policy Gate. It does not grant authority by itself.
+
+See [`docs/NOUS_TOOL_GATEWAY_LANE.md`](docs/NOUS_TOOL_GATEWAY_LANE.md).
+
+Core pattern:
+
+```text
+Human Mission Control
+  -> mandate + policy + budget
+  -> HERMES Dispatch
+  -> Model Council
+  -> MCP Registry
+  -> Policy Gate
+  -> Nous Tool Gateway if approved
+  -> provider or tool
+  -> validation
+  -> receipt log
+```
+
+Managed access must retain BYOK, BYOH, local-tool, and human-review fallback lanes.
+
+---
+
 ## HERMES Task Prompt
 
 ```text
