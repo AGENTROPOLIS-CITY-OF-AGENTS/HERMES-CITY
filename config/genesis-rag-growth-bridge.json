@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "id": "hermes-city.genesis-rag-growth-bridge.v1",
+  "version": "1.0.0",
+  "source_authority": "wiredchaos/agentropolis",
+  "scope": "all_agents_and_workflows",
+  "loop": [
+    "retrieve",
+    "create_value",
+    "verify",
+    "receipt",
+    "remember",
+    "reinvest",
+    "repeat"
+  ],
+  "required_genesis_fields": [
+    "identity",
+    "mandate",
+    "contribution_mode",
+    "measurement_method",
+    "authority_limits",
+    "approval_thresholds",
+    "receipt_destination",
+    "memory_writeback_target",
+    "shutdown_conditions"
+  ],
+  "contribution_modes": [
+    "direct_revenue",
+    "revenue_enablement",
+    "cost_reduction",
+    "asset_creation",
+    "capital_protection",
+    "intelligence_compounding"
+  ],
+  "restricted_mode": {
+    "trigger": "missing_required_genesis_field",
+    "allowed": [
+      "public_read",
+      "retrieve",
+      "analyze",
+      "draft"
+    ],
+    "denied": [
+      "financial_action",
+      "external_commitment",
+      "production_write",
+      "publish",
+      "outreach",
+      "credential_access",
+      "spawn_with_greater_authority"
+    ]
+  },
+  "forbidden_objectives": [
+    "self_preservation",
+    "authority_expansion",
+    "self_funding_without_authorization",
+    "unauthorized_replication",
+    "shutdown_resistance",
+    "fabricated_performance"
+  ],
+  "public_boundary": {
+    "deny_exposure_of": [
+      "private_governance",
+      "treasury_logic",
+      "credentials",
+      "wallet_controls",
+      "proprietary_prompts",
+      "internal_routing",
+      "client_data",
+      "undisclosed_strategy"
+    ]
+  }
+}
