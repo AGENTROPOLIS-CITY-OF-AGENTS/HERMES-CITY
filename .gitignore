@@ -1,0 +1,28 @@
+# Python caches
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Generated test reports (transient — regenerated on each run)
+tests/operational-triad/test_report.json
+tests/operational-triad/test_report.txt
+
+# Transient execution receipts (not test fixtures)
+receipts/
+
+# Transient memory writebacks
+memory/
+
+# Transient smoke test artifacts
+triad-smoke-test.txt
+
+# OS / editor
+Thumbs.db
+.DS_Store
+*.swp
+*.swo
+*~
