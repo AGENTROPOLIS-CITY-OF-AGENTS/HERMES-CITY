@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentropolis.dev/schemas/agentropolis-proof-receipt.schema.json",
+  "title": "Agentropolis Proof Receipt",
+  "description": "Public-safe receipt envelope for verified agent work. A receipt records evidence; it does not grant authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "receipt_id",
+    "agent_id",
+    "district",
+    "mandate_id",
+    "task_hash",
+    "status",
+    "started_at",
+    "finished_at",
+    "evidence"
+  ],
+  "properties": {
+    "receipt_id": { "type": "string", "minLength": 8 },
+    "agent_id": { "type": "string", "minLength": 1 },
+    "district": { "type": "string", "minLength": 1 },
+    "mandate_id": { "type": "string", "minLength": 1 },
+    "task_hash": { "type": "string", "pattern": "^[a-fA-F0-9]{64}$" },
+    "status": {
+      "type": "string",
+      "enum": ["completed", "partial", "failed", "rejected", "revoked"]
+    },
+    "started_at": { "type": "string", "format": "date-time" },
+    "finished_at": { "type": "string", "format": "date-time" },
+    "model": { "type": ["string", "null"] },
+    "provider": { "type": ["string", "null"] },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "token_limit": { "type": ["integer", "null"], "minimum": 0 },
+        "tokens_used": { "type": ["integer", "null"], "minimum": 0 },
+        "cost_limit_usd": { "type": ["number", "null"], "minimum": 0 },
+        "cost_used_usd": { "type": ["number", "null"], "minimum": 0 }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "digest"],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": ["artifact", "test", "commit", "deployment", "audit", "human_review", "ledger_anchor"]
+          },
+          "uri": { "type": ["string", "null"] },
+          "digest": { "type": "string", "minLength": 16 },
+          "verified": { "type": "boolean", "default": false },
+          "verifier": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "thermodynamics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tool_entropy": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "drift_proxy": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "error_density": { "type": ["number", "null"], "minimum": 0 },
+        "useful_work_proxy": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "type": ["string", "null"],
+          "enum": ["accepted", "needs_review", "rejected", null]
+        },
+        "reviewer": { "type": ["string", "null"] },
+        "notes": { "type": ["string", "null"] }
+      }
+    },
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "algorithm": { "type": "string" },
+        "public_key_id": { "type": "string" },
+        "value": { "type": "string" }
+      }
+    }
+  }
+}
