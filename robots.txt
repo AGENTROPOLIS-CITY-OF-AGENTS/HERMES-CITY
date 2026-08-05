@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://wiredchaos.github.io/HERMES-CITY/sitemap.xml
