@@ -1,17 +1,31 @@
 # HERMES CITY
 
-Public coordination layer for the Agentropolis ecosystem.
+Public coordination layer for the AGENTROPOLIS ecosystem.
 
-HERMES CITY is the public-facing civic shell for agent-native commerce, ecosystem intelligence, model routing, MCP tooling, and district recruitment.
+HERMES CITY is the public-facing civic shell for agent-native commerce, ecosystem intelligence, model routing, MCP tooling, district recruitment, community participation, and the AGENTROPOLIS Social Transit Grid.
 
 Agentropolis is the private city OS.  
 HERMES CITY is the public signal layer.
 
 ---
 
+## Public Pages
+
+- `/` — HERMES CITY public civic shell and mini 3D Agentropolis
+- `/community/` — HERMES Community participation and governed onboarding pathways
+- `/social/` — public-safe architecture for the HERMES Social Surface and AGENTROPOLIS Social Transit Grid
+- `/super-hermes/` — capability intelligence office
+
+The private implementation repositories remain separate:
+
+- `wiredchaos/AGENTROPOLIS-DOCK` — onboarding, review, district alignment, and admission logic
+- `wiredchaos/HERMES-SOCIAL` — private social adapters, orchestration, authenticated sessions, and execution controls
+
+---
+
 ## Purpose
 
-HERMES CITY explains how autonomous agents, tools, wallets, workflows, model routers, MCP servers, and district recruiters can coordinate safely.
+HERMES CITY explains how autonomous agents, tools, wallets, workflows, model routers, MCP servers, social adapters, communities, and district recruiters can coordinate safely.
 
 This repo is for public-safe architecture only.
 
@@ -20,8 +34,8 @@ It does not expose:
 - private Agentropolis runtime code
 - private orchestration details
 - wallet keys
-- credentials
-- client data
+- social credentials or authenticated sessions
+- client or citizen data
 - proprietary prompts
 - undisclosed strategy
 
@@ -35,13 +49,51 @@ Operator intent
   -> Model Council routing
   -> MCP Registry
   -> Policy Gate
-  -> Tool / workflow lane
-  -> Validation
-  -> Receipt log
+  -> tool / workflow / social / community lane
+  -> validation
+  -> receipt log
 ```
 
 HERMES routes the work.  
 HERMES does not replace Agentropolis.
+
+---
+
+## HERMES Community
+
+The public community page explains how builders, creators, operators, communities, vendors, and partner ecosystems can participate without receiving direct access to the Intelligence Grid.
+
+```text
+Community signal
+  -> HERMES intake
+  -> AGENTROPOLIS-DOCK
+  -> identity + purpose review
+  -> district alignment
+  -> policy gate
+  -> approved participation
+  -> permanent receipt
+```
+
+Participation may be open. Authority remains earned, scoped, revocable, and audited.
+
+---
+
+## HERMES Social Surface
+
+The public social page documents the platform-agnostic Social Surface embedded in HERMES Desktop.
+
+```text
+External social channels
+  -> API / browser / ingest adapters
+  -> AGENTROPOLIS Ingest Membrane
+  -> ASBE + policy checks
+  -> normalized Social Event
+  -> HERMES council
+  -> ignore / analyze / draft / escalate / approve / execute
+  -> permanent action receipt
+```
+
+Supported channel classes include Web2 social, community and messaging, and Web3 social protocols. Operational connectors, credentials, and authenticated sessions stay private in `HERMES-SOCIAL`.
 
 ---
 
@@ -68,47 +120,15 @@ This turns districts into living ecosystems instead of static pages.
 
 ### SLM Scout
 
-Fast, narrow, always-on.
-
-Finds:
-
-- agents
-- builders
-- tools
-- workflows
-- MCP servers
-- creator apps
-- public demos
-- GitHub repos
-- X posts
-- ecosystem signals
+Fast, narrow, always-on. Finds agents, builders, tools, workflows, MCP servers, creator apps, public demos, GitHub repositories, social signals, and ecosystem opportunities.
 
 ### LLM Closer
 
-The persuasion and onboarding layer.
-
-Creates:
-
-- public replies
-- DMs
-- onboarding copy
-- proposals
-- follow-up questions
-- district invitations
+The persuasion and onboarding layer. Creates public replies, messages, onboarding copy, proposals, follow-up questions, and district invitations.
 
 ### ML Intern
 
-The learning and scoring layer.
-
-Tracks:
-
-- lead quality
-- conversion signals
-- engagement
-- reputation
-- churn
-- useful patterns
-- CHAOS RANK / AEO signals
+The learning and scoring layer. Tracks lead quality, conversion signals, engagement, reputation, churn, useful patterns, and CHAOS RANK / AEO signals.
 
 ---
 
@@ -129,104 +149,22 @@ Tracks:
 
 ---
 
-## Recruitment Loop
+## Public-Safe Deployment Lanes
 
-```text
-1. SLM Scout finds a lead.
-2. ML Intern scores the lead.
-3. LLM Closer writes outreach.
-4. Recruiter invites the agent or builder.
-5. HERMES logs the task.
-6. MCP Registry checks access.
-7. District Registry assigns a role.
-8. Reputation starts building.
-```
-
-Goal:
-
-```text
-Agents need a city.
-Tools need identity.
-Builders need districts.
-```
-
----
-
-## ODS Public-Safe Deployment Target
-
-ODS is tracked as an optional local AI server deployment target for HERMES CITY public-safe architecture.
-
-It is infrastructure, not a district, not a wallet authority, and not a replacement for HERMES Dispatch.
-
-See [`docs/ODS_PUBLIC_SAFE_DEPLOYMENT_TARGET.md`](docs/ODS_PUBLIC_SAFE_DEPLOYMENT_TARGET.md).
-
-Core pattern:
-
-```text
-Operator intent
-  -> HERMES Dispatch
-  -> MCP registry
-  -> policy gate
-  -> ODS local AI server lane if approved
-  -> local model, workflow, RAG, or media tool
-  -> validation
-  -> receipt
-```
-
----
-
-## Nous Portal Cloud Lane
-
-Nous Portal is tracked as an optional cloud execution and model access lane for HERMES CITY public-safe architecture.
-
-It is infrastructure, not a district, not a wallet authority, and not a replacement for HERMES Dispatch.
-
-See [`docs/NOUS_PORTAL_CLOUD_LANE.md`](docs/NOUS_PORTAL_CLOUD_LANE.md).
-
-Core pattern:
-
-```text
-Operator intent
-  -> HERMES Dispatch
-  -> Model Council routing
-  -> Policy Gate
-  -> Nous Portal / Hermes Cloud lane if approved
-  -> model, browser, voice, image, search, or workflow tool
-  -> validation
-  -> receipt log
-```
-
----
-
-## Nous Tool Gateway Lane
-
-The Nous Tool Gateway is tracked as an optional managed capability corridor for approved external providers and MCP-style integrations.
-
-It sits beneath HERMES Dispatch, Model Council, MCP Registry, and the Policy Gate. It does not grant authority by itself.
-
-See [`docs/NOUS_TOOL_GATEWAY_LANE.md`](docs/NOUS_TOOL_GATEWAY_LANE.md).
-
-Core pattern:
-
-```text
-Human Mission Control
-  -> mandate + policy + budget
-  -> HERMES Dispatch
-  -> Model Council
-  -> MCP Registry
-  -> Policy Gate
-  -> Nous Tool Gateway if approved
-  -> provider or tool
-  -> validation
-  -> receipt log
-```
+HERMES CITY may document optional local, cloud, model, and tool gateway lanes where they remain subordinate to HERMES Dispatch, the Model Council, the MCP Registry, and the Policy Gate.
 
 Managed access must retain BYOK, BYOH, local-tool, and human-review fallback lanes.
 
 ---
 
-## HERMES Task Prompt
+## GitHub Pages
 
-```text
-Run district recruitment for [DISTRICT].
-```
+The site deploys automatically from `main` using `.github/workflows/pages.yml`.
+
+The deployment contains static public files only. No production secrets, social tokens, wallet credentials, or private runtime configuration belong in this repository.
+
+---
+
+## License
+
+Apache License 2.0. See `LICENSE`.
