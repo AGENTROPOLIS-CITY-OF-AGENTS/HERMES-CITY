@@ -1,12 +1,6 @@
 /**
- * Agentropolis Civic Proof — Hermes desktop overlay.
- *
- * Drop-in replacement/extension for the standalone hermes-achievements desktop
- * plugin. It intentionally keeps the plugin id `hermes-achievements` so ctx.rest
- * binds to the bundled achievements backend API.
- *
- * No model calls. No inferred authority. All thermodynamic measures are labeled
- * as local telemetry proxies.
+ * Agentropolis Civic Proof — Hermes Desktop overlay.
+ * Local telemetry only. No model calls. No inferred authority.
  */
 
 import {
@@ -26,6 +20,8 @@ import {
 } from '@hermes/plugin-sdk'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
+// Reuse the bundled backend namespace. This plugin is a replacement overlay,
+// not a companion that can be loaded beside another plugin with the same id.
 const ID = 'hermes-achievements'
 let rest
 
@@ -33,29 +29,28 @@ const clamp01 = value => Math.max(0, Math.min(1, Number.isFinite(value) ? value 
 const safeDiv = (a, b) => (b > 0 ? a / b : 0)
 
 function normalizedEntropy(values) {
-  const positive = values.map(v => Math.max(0, Number(v) || 0))
-  const total = positive.reduce((sum, v) => sum + v, 0)
-  const active = positive.filter(v => v > 0).length
+  const positive = values.map(value => Math.max(0, Number(value) || 0))
+  const total = positive.reduce((sum, value) => sum + value, 0)
+  const active = positive.filter(value => value > 0).length
   if (!total || active <= 1) return 0
-  const entropy = positive.reduce((sum, v) => {
-    if (!v) return sum
-    const p = v / total
+  const entropy = positive.reduce((sum, value) => {
+    if (!value) return sum
+    const p = value / total
     return sum - p * Math.log2(p)
   }, 0)
   return clamp01(entropy / Math.log2(active))
 }
 
 function distribution(values) {
-  const cleaned = values.map(v => Math.max(0, Number(v) || 0))
-  const total = cleaned.reduce((sum, v) => sum + v, 0)
-  return total ? cleaned.map(v => v / total) : cleaned.map(() => 0)
+  const cleaned = values.map(value => Math.max(0, Number(value) || 0))
+  const total = cleaned.reduce((sum, value) => sum + value, 0)
+  return total ? cleaned.map(value => value / total) : cleaned.map(() => 0)
 }
 
 function kl(p, q) {
   return p.reduce((sum, value, index) => {
     if (!value) return sum
-    const denominator = q[index] || Number.EPSILON
-    return sum + value * Math.log2(value / denominator)
+    return sum + value * Math.log2(value / (q[index] || Number.EPSILON))
   }, 0)
 }
 
@@ -74,24 +69,32 @@ function toolVector(source = {}) {
     source.delegate_calls ?? source.total_delegate_calls,
     source.process_calls ?? source.total_process_calls,
     source.cron_calls ?? source.total_cron_calls
-  ].map(v => Number(v) || 0)
+  ].map(value => Number(value) || 0)
 }
 
 function splitSessions(sessions = []) {
-  const ordered = [...sessions].sort((a, b) => Number(a.last_active || a.started_at || 0) - Number(b.last_active || b.started_at || 0))
+  const ordered = [...sessions].sort(
+    (a, b) => Number(a.last_active || a.started_at || 0) - Number(b.last_active || b.started_at || 0)
+  )
   if (ordered.length < 4) return { baseline: ordered, recent: ordered }
   const cut = Math.max(1, Math.floor(ordered.length * 0.75))
   return { baseline: ordered.slice(0, cut), recent: ordered.slice(cut) }
 }
 
 function sumVectors(sessions) {
-  return sessions.reduce((acc, session) => toolVector(session).map((v, i) => v + acc[i]), [0, 0, 0, 0, 0, 0])
+  return sessions.reduce(
+    (acc, session) => toolVector(session).map((value, index) => value + acc[index]),
+    [0, 0, 0, 0, 0, 0]
+  )
 }
 
 function deriveProof(data) {
   const aggregate = data.aggregate || {}
+  const sessions = data.sessions || []
   const totalTools = Number(aggregate.total_tool_calls || 0)
   const errors = Number(aggregate.total_errors || 0)
+  const sessionCount = Number(aggregate.session_count || sessions.length || 0)
+  const hasTelemetry = totalTools > 0 || sessionCount > 0
   const usefulSignals = [
     aggregate.total_patch_calls,
     aggregate.total_file_reads_searches,
@@ -102,15 +105,18 @@ function deriveProof(data) {
     aggregate.memory_write_events
   ].reduce((sum, value) => sum + (Number(value) || 0), 0)
 
-  const { baseline, recent } = splitSessions(data.sessions || [])
+  const { baseline, recent } = splitSessions(sessions)
   const entropy = normalizedEntropy(toolVector(aggregate))
-  const drift = baseline.length && recent.length ? jensenShannon(sumVectors(baseline), sumVectors(recent)) : 0
+  const drift = baseline.length && recent.length
+    ? jensenShannon(sumVectors(baseline), sumVectors(recent))
+    : 0
   const errorDensity = safeDiv(errors, totalTools)
   const usefulWork = clamp01(safeDiv(usefulSignals, totalTools))
   const activity = clamp01(safeDiv(data.unlocked_count || 0, data.total_count || 0))
-
   const heat = clamp01(errorDensity * 4 + drift * 0.8)
-  const health = clamp01((usefulWork * 0.45) + ((1 - heat) * 0.35) + (entropy * 0.20))
+  const health = hasTelemetry
+    ? clamp01((usefulWork * 0.45) + ((1 - heat) * 0.35) + (entropy * 0.20))
+    : null
 
   return {
     activity,
@@ -119,24 +125,26 @@ function deriveProof(data) {
     errorDensity,
     usefulWork,
     health,
+    hasTelemetry,
     totalTools,
     errors,
-    sessionCount: Number(aggregate.session_count || (data.sessions || []).length || 0)
+    sessionCount
   }
 }
 
 function pct(value) {
-  return `${Math.round(clamp01(value) * 100)}%`
+  return Number.isFinite(value) ? `${Math.round(clamp01(value) * 100)}%` : 'N/A'
 }
 
 function metricTone(value, invert = false) {
+  if (!Number.isFinite(value)) return 'text-(--ui-text-tertiary)'
   const score = invert ? 1 - clamp01(value) : clamp01(value)
   if (score >= 0.72) return 'text-(--ui-accent)'
   if (score >= 0.42) return 'text-(--ui-text-primary)'
   return 'text-(--ui-text-tertiary)'
 }
 
-function MetricCard({ label, value, detail, invert = false, proxy = true }) {
+function MetricCard({ label, value, detail, invert = false }) {
   return jsxs('div', {
     className: 'rounded-lg border border-(--ui-stroke-secondary) bg-(--ui-bg-secondary) p-4',
     children: [
@@ -144,10 +152,13 @@ function MetricCard({ label, value, detail, invert = false, proxy = true }) {
         className: 'flex items-center justify-between gap-2',
         children: [
           jsx('span', { className: 'text-xs font-medium uppercase tracking-wide text-(--ui-text-tertiary)', children: label }),
-          proxy ? jsx(Badge, { variant: 'outline', className: 'text-[0.625rem]', children: 'proxy' }) : null
+          jsx(Badge, { variant: 'outline', className: 'text-[0.625rem]', children: 'proxy' })
         ]
       }),
-      jsx('div', { className: cn('mt-2 text-2xl font-semibold tabular-nums', metricTone(value, invert)), children: pct(value) }),
+      jsx('div', {
+        className: cn('mt-2 text-2xl font-semibold tabular-nums', metricTone(value, invert)),
+        children: pct(value)
+      }),
       jsx('p', { className: 'mt-2 text-xs leading-relaxed text-(--ui-text-tertiary)', children: detail })
     ]
   })
@@ -180,7 +191,7 @@ function CivicProofPage() {
   if (isLoading) {
     return jsx('div', {
       className: 'grid h-full grid-cols-1 gap-4 overflow-y-auto p-6 sm:grid-cols-2 lg:grid-cols-3',
-      children: Array.from({ length: 9 }, (_, i) => jsx(Skeleton, { key: i, className: 'h-36 rounded-lg' }))
+      children: Array.from({ length: 9 }, (_, index) => jsx(Skeleton, { key: index, className: 'h-36 rounded-lg' }))
     })
   }
 
@@ -193,6 +204,9 @@ function CivicProofPage() {
   }
 
   const proof = deriveProof(data)
+  const telemetryDetail = proof.hasTelemetry
+    ? 'thermodynamic health proxy'
+    : 'insufficient telemetry — no score issued'
 
   return jsxs('div', {
     className: 'h-full overflow-y-auto',
@@ -221,8 +235,11 @@ function CivicProofPage() {
               jsxs('div', {
                 className: 'text-right',
                 children: [
-                  jsx('div', { className: cn('text-3xl font-semibold tabular-nums', metricTone(proof.health)), children: pct(proof.health) }),
-                  jsx('div', { className: 'text-xs text-(--ui-text-tertiary)', children: 'thermodynamic health proxy' })
+                  jsx('div', {
+                    className: cn('text-3xl font-semibold tabular-nums', metricTone(proof.health)),
+                    children: pct(proof.health)
+                  }),
+                  jsx('div', { className: 'text-xs text-(--ui-text-tertiary)', children: telemetryDetail })
                 ]
               })
             ]
@@ -247,10 +264,10 @@ function CivicProofPage() {
               jsxs('div', {
                 className: 'grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4',
                 children: [
-                  jsx(MetricCard, { label: 'Tool entropy', value: proof.entropy, detail: 'Distributional diversity across terminal, files, web, delegation, processes, and cron.' }),
-                  jsx(MetricCard, { label: 'Drift', value: proof.drift, invert: true, detail: 'Jensen-Shannon divergence between recent and baseline tool-use distributions. Lower is steadier.' }),
-                  jsx(MetricCard, { label: 'Error density', value: Math.min(1, proof.errorDensity * 4), invert: true, detail: `${proof.errorDensity.toFixed(3)} errors per tool call. Lower is generally healthier, but context still matters.` }),
-                  jsx(MetricCard, { label: 'Useful work', value: proof.usefulWork, detail: 'Bounded ratio of edits, reads, extracts, tests, releases, git, and memory-write signals to tool calls.' })
+                  jsx(MetricCard, { label: 'Tool entropy', value: proof.hasTelemetry ? proof.entropy : null, detail: 'Distributional diversity across terminal, files, web, delegation, processes, and cron.' }),
+                  jsx(MetricCard, { label: 'Drift', value: proof.hasTelemetry ? proof.drift : null, invert: true, detail: 'Jensen-Shannon divergence between recent and baseline tool-use distributions. Lower is steadier.' }),
+                  jsx(MetricCard, { label: 'Error density', value: proof.hasTelemetry ? Math.min(1, proof.errorDensity * 4) : null, invert: true, detail: `${proof.errorDensity.toFixed(3)} errors per tool call. Lower is generally healthier, but context still matters.` }),
+                  jsx(MetricCard, { label: 'Useful work', value: proof.hasTelemetry ? proof.usefulWork : null, detail: 'Bounded ratio of edits, reads, extracts, tests, releases, git, and memory-write signals to tool calls.' })
                 ]
               })
             ]
@@ -292,14 +309,19 @@ function ProofChip() {
     refetchInterval: 120_000
   })
   if (!data) return null
-  const health = deriveProof(data).health
+  const proof = deriveProof(data)
+  const label = proof.hasTelemetry
+    ? `Civic Proof health proxy: ${pct(proof.health)}`
+    : 'Civic Proof health proxy unavailable: insufficient telemetry'
   return jsx(Tip, {
-    label: `Civic Proof health proxy: ${pct(health)}`,
+    label,
     children: jsx('button', {
       className: 'inline-flex h-full items-center gap-1 px-1.5 text-[0.6875rem] tabular-nums text-(--ui-text-tertiary) hover:bg-(--chrome-action-hover)',
       type: 'button',
       onClick: () => host.navigate('/civic-proof'),
-      children: jsxs('span', { children: [jsx(Codicon, { name: 'shield', size: '0.7rem' }), ` ${pct(health)}`] })
+      children: jsxs('span', {
+        children: [jsx(Codicon, { name: 'shield', size: '0.7rem' }), ` ${pct(proof.health)}`]
+      })
     })
   })
 }
