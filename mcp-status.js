@@ -1,5 +1,4 @@
 (() => {
-  const cfg = window.HERMES_MCP_CONFIG || {}
   const panel = document.createElement('section')
   panel.className = 'mcp-glass'
   panel.setAttribute('aria-live', 'polite')
@@ -10,9 +9,13 @@
     </div>
     <p class="mcp-copy">One governed capability membrane for HERMES CITY and Mission Control.</p>
     <div class="mcp-facts">
-      <span>Runtime</span><strong id="mcpRuntime">${cfg.baseUrl ? 'CHECKING' : 'NOT CONFIGURED'}</strong>
+      <span>Runtime</span><strong id="mcpRuntime">NOT CONFIGURED</strong>
+      <span>Service</span><strong id="mcpService">—</strong>
+      <span>Endpoint</span><strong id="mcpEndpoint">—</strong>
+      <span>Transport</span><strong id="mcpTransport">STREAMABLE HTTP</strong>
       <span>Tools</span><strong id="mcpTools">—</strong>
       <span>Authority</span><strong>READ ONLY</strong>
+      <span>Last check</span><strong id="mcpLast">—</strong>
     </div>
     <div class="mcp-actions">
       <button id="mcpCheck" type="button">CHECK GRID</button>
@@ -23,18 +26,31 @@
   document.body.appendChild(panel)
 
   const runtime = panel.querySelector('#mcpRuntime')
+  const service = panel.querySelector('#mcpService')
+  const endpoint = panel.querySelector('#mcpEndpoint')
   const tools = panel.querySelector('#mcpTools')
+  const last = panel.querySelector('#mcpLast')
   const check = panel.querySelector('#mcpCheck')
   const configure = panel.querySelector('#mcpConfigure')
 
+  function currentConfig() {
+    return window.HERMES_MCP_CONFIG || {}
+  }
+
   async function verify() {
+    const cfg = currentConfig()
     if (!cfg.baseUrl) {
       runtime.textContent = 'NOT CONFIGURED'
+      service.textContent = '—'
+      endpoint.textContent = '—'
+      tools.textContent = '—'
+      last.textContent = '—'
       panel.dataset.state = 'warning'
       return
     }
     runtime.textContent = 'CHECKING'
     panel.dataset.state = 'checking'
+    endpoint.textContent = cfg.mcpUrl || '—'
     try {
       const [healthResponse, manifestResponse] = await Promise.all([
         fetch(cfg.healthUrl, { headers: { accept: 'application/json' } }),
@@ -46,19 +62,22 @@
       const health = await healthResponse.json()
       const manifest = await manifestResponse.json()
       runtime.textContent = String(health.status || 'ONLINE').toUpperCase()
+      service.textContent = String(health.service || 'agentropolis-agent-mcp')
       tools.textContent = String(manifest?.tools?.length ?? manifest?.capabilities?.tools?.length ?? '—')
+      last.textContent = new Date().toISOString()
       panel.dataset.state = 'online'
     } catch (error) {
       runtime.textContent = 'UNREACHABLE'
+      service.textContent = '—'
       tools.textContent = '—'
+      last.textContent = '—'
       panel.dataset.state = 'offline'
       panel.title = error instanceof Error ? error.message : 'MCP check failed'
     }
   }
 
   configure.addEventListener('click', () => {
-    const current = cfg.baseUrl || ''
-    const value = window.prompt('Agentropolis MCP Worker base URL', current)
+    const value = window.prompt('Agentropolis MCP Worker base URL', currentConfig().baseUrl || '')
     if (!value) return
     try {
       const url = new URL(value.trim().replace(/\/+$/, ''))
@@ -69,6 +88,11 @@
       window.alert('Use a valid HTTPS Worker base URL.')
     }
   })
-  check.addEventListener('click', verify)
-  verify()
+
+  window.addEventListener('agentropolis-mcp-config', () => {
+    void verify()
+  })
+
+  check.addEventListener('click', () => void verify())
+  void verify()
 })()
