@@ -11,7 +11,7 @@
 
 test:
 	python scripts/verify-site.py
-	@if [ -d hermes-bridge ] && [ -d hermes-bridge/tests ]; then python -m unittest discover -s hermes-bridge/tests -v; else echo "hermes-bridge suite not present on this branch — skipped"; fi
+	@if [ -d hermes-bridge ] && [ -d hermes-bridge/tests ] && ls hermes-bridge/tests/test_*.py >/dev/null 2>&1; then python -m unittest discover -s hermes-bridge/tests -v; else echo "hermes-bridge suite not present on this branch — skipped"; fi
 
 verify-site:
 	python scripts/verify-site.py
