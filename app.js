@@ -1,4 +1,6 @@
-import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+import * as THREE from "./assets/three.module.js";
+
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const bootLines = [
   "boot://hermes-city",
@@ -25,6 +27,10 @@ function revealOnScroll() {
 
 function typeBootSequence() {
   if (!terminal) return;
+  if (prefersReducedMotion) {
+    terminal.textContent = bootLines.join("\n") + "\nCITY READY";
+    return;
+  }
   let lineIndex = 0;
   let charIndex = 0;
   let output = "";
@@ -66,9 +72,63 @@ function addCardSignals() {
   });
 }
 
+function showStaticFallback(canvas) {
+  if (!canvas) return;
+  document.body.classList.add("no-webgl");
+  canvas.setAttribute("aria-hidden", "true");
+  let fallback = document.querySelector(".city-fallback");
+  if (fallback) return;
+  fallback = document.createElement("div");
+  fallback.className = "city-fallback";
+  fallback.setAttribute("role", "img");
+  fallback.setAttribute("aria-label", "Static map of the Agentropolis districts: Hermes HQ, NemoClaw Works, Nemotron Council, Wallet Rails, RAILWATCH, Mission Control");
+  const towerList = [
+    "Hermes HQ",
+    "NemoClaw Works",
+    "Nemotron Council",
+    "Wallet Rails",
+    "RAILWATCH",
+    "Mission Control"
+  ];
+  const heading = document.createElement("p");
+  heading.className = "city-fallback-heading";
+  heading.textContent = "3D city visualization unavailable";
+  fallback.appendChild(heading);
+  const note = document.createElement("p");
+  note.textContent = "This environment does not support WebGL (or motion is reduced). The districts below remain mapped.";
+  fallback.appendChild(note);
+  const list = document.createElement("ul");
+  towerList.forEach((name) => {
+    const li = document.createElement("li");
+    li.textContent = name;
+    list.appendChild(li);
+  });
+  fallback.appendChild(list);
+  canvas.insertAdjacentElement("afterend", fallback);
+}
+
 function createMiniCity() {
   const canvas = document.querySelector("#city3d");
   if (!canvas) return;
+
+  let webglSupported = false;
+  try {
+    webglSupported = Boolean(canvas.getContext("webgl2") || canvas.getContext("webgl"));
+  } catch (err) {
+    webglSupported = false;
+  }
+  if (!webglSupported) {
+    showStaticFallback(canvas);
+    return;
+  }
+
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  } catch (err) {
+    showStaticFallback(canvas);
+    return;
+  }
 
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0x05070b, 0.028);
@@ -77,8 +137,7 @@ function createMiniCity() {
   camera.position.set(13, 11, 18);
   camera.lookAt(0, 1.6, 0);
 
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, prefersReducedMotion ? 1 : 1.8));
   renderer.setSize(window.innerWidth, window.innerHeight);
 
   const group = new THREE.Group();
@@ -194,11 +253,15 @@ function createMiniCity() {
 
   function animate() {
     const elapsed = clock.getElapsedTime();
-    group.rotation.y = elapsed * 0.075;
-    group.position.y = Math.sin(elapsed * 0.7) * 0.08;
+    if (prefersReducedMotion) {
+      group.rotation.y = 0.6;
+    } else {
+      group.rotation.y = elapsed * 0.075;
+      group.position.y = Math.sin(elapsed * 0.7) * 0.08;
+    }
     projectLabels();
     renderer.render(scene, camera);
-    requestAnimationFrame(animate);
+    if (!prefersReducedMotion) requestAnimationFrame(animate);
   }
 
   window.addEventListener("resize", () => {
@@ -212,8 +275,17 @@ function createMiniCity() {
 
 window.addEventListener("scroll", revealOnScroll, { passive: true });
 window.addEventListener("load", () => {
-  revealOnScroll();
+  if (prefersReducedMotion) {
+    revealItems.forEach((item) => item.classList.add("visible"));
+  } else {
+    revealOnScroll();
+  }
   typeBootSequence();
   addCardSignals();
-  createMiniCity();
+  try {
+    createMiniCity();
+  } catch (err) {
+    console.warn("3D city unavailable:", err);
+    showStaticFallback(document.querySelector("#city3d"));
+  }
 });

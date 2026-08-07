@@ -3,20 +3,32 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="HERMES CITY is a static mini 3D Agentropolis and public coordination shell for agent-native orchestration.">
-  <title>HERMES CITY | Mini 3D Agentropolis</title>
+  <title>HERMES CITY | Public AGENTROPOLIS Civic Shell</title>
+  <meta name="description" content="HERMES CITY is a static mini 3D Agentropolis and public coordination shell for agent-native orchestration. Community pathways, Social Transit Grid architecture, and the SUPER HERMES capability office.">
+  <link rel="canonical" href="https://wiredchaos.github.io/HERMES-CITY/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="HERMES CITY">
+  <meta property="og:title" content="HERMES CITY | Public AGENTROPOLIS Civic Shell">
+  <meta property="og:description" content="Static mini 3D Agentropolis: community pathways, Social Transit Grid architecture, and SUPER HERMES capability office — public shell only.">
+  <meta property="og:url" content="https://wiredchaos.github.io/HERMES-CITY/">
+  <meta property="og:image" content="https://wiredchaos.github.io/HERMES-CITY/assets/city-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="HERMES CITY | Public AGENTROPOLIS Civic Shell">
+  <meta name="twitter:description" content="Static mini 3D Agentropolis: community pathways, Social Transit Grid architecture, and SUPER HERMES capability office.">
+  <meta name="twitter:image" content="https://wiredchaos.github.io/HERMES-CITY/assets/city-card.png">
+  <meta name="theme-color" content="#05070b">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="mcp-shared.css">
-  <script src="mcp-config.js" defer></script>
-  <script src="mcp-status.js" defer></script>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <canvas id="city3d" aria-label="Mini 3D Agentropolis visualization"></canvas>
-  <div class="grid-bg"></div>
+  <div class="grid-bg" aria-hidden="true"></div>
 
   <header class="nav">
-    <a class="brand" href="#top"><span class="brand-mark">HC</span><span>HERMES CITY</span></a>
-    <nav>
+    <a class="brand" href="#main-content" aria-label="HERMES CITY home"><span class="brand-mark" aria-hidden="true">HC</span><span>HERMES CITY</span></a>
+    <nav aria-label="Primary">
       <a href="#city-map">3D City</a>
       <a href="#modules">Districts</a>
       <a href="community/">Community</a>
@@ -26,7 +38,7 @@
     </nav>
   </header>
 
-  <main id="top">
+  <main id="main-content">
     <section class="hero section">
       <div class="hero-copy reveal">
         <p class="eyebrow">Static mini 3D Agentropolis</p>
@@ -39,7 +51,7 @@
           <a class="button ghost" href="#city-map">Enter 3D city</a>
         </div>
       </div>
-      <aside class="hud-panel reveal">
+      <aside class="hud-panel reveal" aria-label="City telemetry">
         <p class="eyebrow">City telemetry</p>
         <div class="hud-row"><span>Core</span><strong>Hermes</strong></div>
         <div class="hud-row"><span>Community Entry</span><strong>AGENTROPOLIS-DOCK</strong></div>
@@ -55,7 +67,7 @@
       <div class="reveal">
         <p class="eyebrow">3D city map</p>
         <h2>A mini Agentropolis visitors can understand fast.</h2>
-        <p>The browser renders a simple 3D city using static JavaScript. No backend. No private code. No build step. Just a public-facing architectural map.</p>
+        <p>The browser renders a simple 3D city using static JavaScript. No backend. No private code. No build step. Just a public-facing architectural map. If WebGL is unavailable, a static map fallback is shown instead.</p>
       </div>
       <div class="terminal reveal">
         <div class="terminal-bar"><span></span><span></span><span></span></div>

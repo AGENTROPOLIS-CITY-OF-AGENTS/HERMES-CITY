@@ -1,0 +1,12 @@
+title = "HERMES-CITY gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Redaction-proof test fixtures use literal sk-/ghp_/AKIA/Bearer placeholder strings BY DESIGN to prove redaction strips them. These are fixture values, never live credentials."
+paths = [
+  "hermes-bridge/tests/test_secret_protection.py",
+  "hermes-bridge/tests/test_receipts.py",
+  "hermes-bridge/tests/test_receipt_scenarios.py",
+]

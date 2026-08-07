@@ -1,0 +1,4 @@
+# Vendored third-party code: do not whitespace-check or rewrite
+assets/three.module.js -whitespace linguist-vendored
+# Generated binary asset
+assets/city-card.png binary

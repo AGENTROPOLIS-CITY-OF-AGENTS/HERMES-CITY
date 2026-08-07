@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# Environment files (never commit)
+.env
+.env.*
+!.env.example
+
+# Node (unused on this static site, kept for safety)
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Archives / artifacts
+*.tar
+*.tar.gz
+*.zip
+*.pyc
