@@ -2,7 +2,7 @@
 
 Public repository: `wiredchaos/HERMES-CITY`
 
-Private companion: `wiredchaos/agentropolis`
+Private companion: `AGENTROPOLIS-CITY-OF-AGENTS/agentropolis`
 
 Source signal: `https://basedbot.app/base`
 
@@ -87,4 +87,4 @@ Governance keeps the loop survivable.
 
 Public watch signal added.
 
-Private implementation details belong in `wiredchaos/agentropolis` only.
+Private implementation details belong in `AGENTROPOLIS-CITY-OF-AGENTS/agentropolis` only.

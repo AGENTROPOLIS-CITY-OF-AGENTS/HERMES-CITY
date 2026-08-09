@@ -1,7 +1,7 @@
 # HERMES CITY Genesis RAG Growth Bridge
 
 **Status:** Public-safe execution doctrine  
-**Source of authority:** `wiredchaos/agentropolis` Root City OS  
+**Source of authority:** `AGENTROPOLIS-CITY-OF-AGENTS/agentropolis` Root City OS  
 **Scope:** Every agent, recruiter, dispatcher, tool caller, workflow, and public automation operating through HERMES CITY
 
 ## Public City Command

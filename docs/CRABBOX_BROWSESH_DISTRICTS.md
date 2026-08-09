@@ -39,7 +39,7 @@ Agentropolis governs.
 
 | Repo | Role |
 |---|---|
-| `wiredchaos/agentropolis` | Private City OS. Master architecture map. |
+| `AGENTROPOLIS-CITY-OF-AGENTS/agentropolis` | Private City OS. Master architecture map. |
 | `wiredchaos/HERMES-CITY` | Public-safe explanation of districts. |
 | `wiredchaos/AGENTROPOLIS-CREATOR` | Foundry, skills, builders, packaged workflows. |
 | `wiredchaos/AGENTROPOLIS-AGENT-MCP` | Governed tool membrane. |

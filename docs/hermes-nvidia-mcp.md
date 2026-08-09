@@ -144,7 +144,7 @@ wiredchaos/AGENTROPOLIS-AGENT-MCP/mcp-skills/mcp-hermes-nvidia.md
 Related AGENTROPOLIS city capture:
 
 ```text
-wiredchaos/agentropolis/mcp-skills/skills/mcp-hermes-nvidia.md
+AGENTROPOLIS-CITY-OF-AGENTS/agentropolis/mcp-skills/skills/mcp-hermes-nvidia.md
 ```
 
 ## Status
