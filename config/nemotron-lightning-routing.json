@@ -1,0 +1,50 @@
+{
+  "schema_version": "hermes.model-routing.v1",
+  "route_id": "nemotron-lightning-local-candidate",
+  "enabled": false,
+  "status": "candidate",
+  "provider_class": "openai-compatible-local",
+  "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+  "selection_mode": "capability-based",
+  "requested_capabilities": [
+    "reasoning",
+    "coding",
+    "tool-calling",
+    "local-inference",
+    "private-data"
+  ],
+  "prefer_when": {
+    "privacy": "local-preferred",
+    "cost": "minimize-frontier-escalation",
+    "latency": "interactive-worker",
+    "task_classes": [
+      "repo-analysis",
+      "code-synthesis",
+      "tool-worker",
+      "private-document-analysis"
+    ]
+  },
+  "escalate_when": [
+    "capability-mismatch",
+    "policy-deny",
+    "hardware-pressure",
+    "quality-threshold-miss",
+    "context-limit-risk",
+    "contra-confidence-low"
+  ],
+  "gates": {
+    "policy_risk": "required",
+    "contra_benchmark": "required",
+    "runtime_attestation": "required",
+    "human_approval_for_high_risk_execution": true
+  },
+  "telemetry": {
+    "record_provider_choice": true,
+    "record_escalation_reason": true,
+    "record_latency": true,
+    "record_token_usage": true,
+    "record_action_receipt": true,
+    "record_raw_secrets": false
+  },
+  "doctrine": "HERMES requests capabilities; the Intelligence Grid chooses replaceable models."
+}
