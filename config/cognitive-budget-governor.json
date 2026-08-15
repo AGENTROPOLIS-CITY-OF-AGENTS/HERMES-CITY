@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "name": "cognitive-budget-governor",
+  "source": "wiredchaos/AGENTROPOLIS-SYSTEM-STEWARD",
+  "mode": "closed_beta",
+  "enabled": false,
+  "feature_flag": "cognitive_budget_governor",
+  "routing": {
+    "deterministic_before_probabilistic": true,
+    "delta_before_history": true,
+    "least_capability_first": true,
+    "fresh_context_on_domain_change": true
+  },
+  "governance": {
+    "require_54t_receipt": true,
+    "require_evidence_pointer_before_model_wake": true,
+    "raw_secrets_in_context": false,
+    "capability_expansion": "default_deny",
+    "high_impact_requires_dual_control": true
+  },
+  "adapters": {
+    "authorization": "AGENTROPOLIS_54T_CAPABILITY_HANDLE",
+    "evidence_store": "AGENTROPOLIS_WIKIVAULT_CAPABILITY_HANDLE",
+    "telemetry": "AGENTROPOLIS_TELEMETRY_CAPABILITY_HANDLE"
+  },
+  "receipts": {
+    "required": true,
+    "fields": [
+      "task_domain",
+      "route_mode",
+      "selected_toolsets",
+      "denied_toolsets",
+      "authorization_receipt_id",
+      "evidence_artifact_ids",
+      "delta_detected",
+      "cognitive_budget_decision",
+      "acceptance_criteria_result",
+      "policy_state"
+    ]
+  },
+  "rollout": {
+    "initial_percent": 10,
+    "auto_expand": false,
+    "promotion_requires_human_approval": true
+  }
+}
