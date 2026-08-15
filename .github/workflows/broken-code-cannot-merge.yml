@@ -1,0 +1,42 @@
+name: governed-config-validation
+
+on:
+  pull_request:
+  push:
+    branches: ["integrate/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  broken-code-cannot-merge:
+    name: Broken code cannot merge
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate JSON configuration
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for path in Path('config').glob('*.json'):
+              json.loads(path.read_text())
+          PY
+      - name: Validate Cognitive Budget governance invariants
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path('config/cognitive-budget-governor.json')
+          if path.exists():
+              cfg = json.loads(path.read_text())
+              assert cfg['enabled'] is False
+              assert cfg['governance']['require_54t_receipt'] is True
+              assert cfg['governance']['require_evidence_pointer_before_model_wake'] is True
+              assert cfg['governance']['raw_secrets_in_context'] is False
+              assert cfg['governance']['capability_expansion'] == 'default_deny'
+              assert cfg['rollout']['auto_expand'] is False
+          PY
