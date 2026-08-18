@@ -1,0 +1,56 @@
+{
+  "schema": "agentropolis.genui/v1",
+  "surface_hint": "auto",
+  "title": "BTC/USD",
+  "components": [
+    {
+      "type": "metric",
+      "id": "btc-price",
+      "label": "BTC/USD",
+      "value": 64320,
+      "unit": "USD"
+    },
+    {
+      "type": "sparkline",
+      "id": "btc-24h",
+      "label": "24h",
+      "series": [63100, 63420, 63280, 63770, 63910, 64120, 64320]
+    },
+    {
+      "type": "status",
+      "id": "policy-state",
+      "label": "54-T",
+      "text": "Beta actions are simulation-only.",
+      "state": "ok"
+    },
+    {
+      "type": "action_group",
+      "id": "market-actions",
+      "label": "Actions",
+      "actions": [
+        {
+          "id": "analyze",
+          "label": "Analyze",
+          "capability_handle": "cap://market/analyze",
+          "policy_scope": "scope://market/read",
+          "impact": "read",
+          "confirmation": "none"
+        },
+        {
+          "id": "create-watch",
+          "label": "Create Watch",
+          "capability_handle": "cap://market/watch/create",
+          "policy_scope": "scope://market/watch/write",
+          "impact": "low",
+          "confirmation": "human"
+        }
+      ]
+    }
+  ],
+  "provenance": {
+    "required": true,
+    "source_type": "fixture",
+    "source_ref": "tests/fixtures/genui/market.valid.json"
+  },
+  "receipt_policy": "on_action"
+}
