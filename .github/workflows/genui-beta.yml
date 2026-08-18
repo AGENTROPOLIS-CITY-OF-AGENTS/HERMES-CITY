@@ -1,0 +1,52 @@
+name: genui-beta-validation
+
+on:
+  pull_request:
+  push:
+    branches: ["main", "feat/genui-mcp-surface-fabric"]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-genui:
+    name: Validate GenUI beta contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate config JSON
+        run: python -m json.tool config/genui-fabric.json >/dev/null
+      - name: Validate schema JSON
+        run: python -m json.tool schemas/agentropolis.genui.v1.schema.json >/dev/null
+      - name: Validate accepted manifest
+        run: python tools/validate_genui.py tests/fixtures/genui/market.valid.json
+      - name: Assert unsafe manifest is rejected
+        run: |
+          if python tools/validate_genui.py tests/fixtures/genui/unsafe.invalid.json; then
+            echo "unsafe fixture was incorrectly accepted"
+            exit 1
+          fi
+      - name: Run validator unit tests
+        run: python -m unittest -v tests/test_genui_validator.py
+      - name: Enforce closed-beta governance invariants
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          cfg = json.loads(Path('config/genui-fabric.json').read_text())
+          assert cfg['mode'] == 'closed_beta'
+          assert cfg['security']['arbitrary_html'] is False
+          assert cfg['security']['arbitrary_javascript'] is False
+          assert cfg['security']['raw_credentials_in_manifest'] is False
+          assert cfg['security']['require_policy_scope_for_actions'] is True
+          assert cfg['security']['require_capability_handle_for_actions'] is True
+          assert cfg['security']['require_54t_preflight_for_actions'] is True
+          assert cfg['security']['high_impact_action_mode'] == 'deny_without_dual_control'
+          assert cfg['actions']['beta_default'] == 'simulate'
+          assert cfg['beta']['live_external_actions_enabled'] is False
+          assert cfg['beta']['production_secrets_allowed'] is False
+          assert cfg['beta']['human_approval_required_for_promotion'] is True
+          PY
