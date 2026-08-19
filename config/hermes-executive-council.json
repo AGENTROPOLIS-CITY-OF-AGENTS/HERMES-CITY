@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "name": "hermes-executive-council",
+  "mode": "closed_beta",
+  "enabled": false,
+  "feature_flag": "hermes_executive_council",
+  "permanent_seats": [
+    {
+      "id": "hermes-grove",
+      "title": "Chief Operating Executive",
+      "lens": "Andy Grove",
+      "domain": "operations"
+    },
+    {
+      "id": "architect-hamilton",
+      "title": "Chief Systems Architect",
+      "lens": "Margaret Hamilton",
+      "domain": "architecture"
+    },
+    {
+      "id": "forge-torvalds",
+      "title": "Chief Engineering Executive",
+      "lens": "Linus Torvalds",
+      "domain": "engineering"
+    },
+    {
+      "id": "contra-feynman",
+      "title": "Chief Epistemics Officer",
+      "lens": "Richard Feynman",
+      "domain": "epistemics"
+    },
+    {
+      "id": "oracle-boyd",
+      "title": "Chief Strategy & Intelligence Officer",
+      "lens": "John Boyd",
+      "domain": "strategy"
+    },
+    {
+      "id": "steward-meadows",
+      "title": "Chief Governance Officer",
+      "lens": "Donella Meadows",
+      "domain": "governance"
+    }
+  ],
+  "constitutional_files": [
+    "SOUL.md",
+    "MANDATE.md",
+    "AUTHORITY.md",
+    "BOUNDARIES.md",
+    "SOURCES.md",
+    "ACCOUNTABILITY.md",
+    "DISAGREEMENTS.jsonl"
+  ],
+  "decision_states": [
+    "approve",
+    "approve_with_conditions",
+    "revise",
+    "escalate",
+    "deny",
+    "observe_only"
+  ],
+  "governance": {
+    "require_54t_receipt": true,
+    "default_deny_capability_expansion": true,
+    "high_impact_requires_dual_control": true,
+    "self_approval_prohibited": true,
+    "dissent_logging_required": true,
+    "human_can_override": true,
+    "raw_secrets_in_context": false
+  },
+  "routing": {
+    "low_risk_may_skip_irrelevant_seats": true,
+    "required_security_gates_may_not_be_skipped": true,
+    "required_evidence_gates_may_not_be_skipped": true,
+    "specialists_are_temporary": true,
+    "specialists_inherit_parent_permissions": false
+  },
+  "receipts": {
+    "required": true,
+    "fields": [
+      "decision_id",
+      "task_id",
+      "executive_seat",
+      "decision_state",
+      "evidence_artifact_ids",
+      "assumptions",
+      "dissent_refs",
+      "authority_used",
+      "capabilities_requested",
+      "capabilities_denied",
+      "risk_state",
+      "54t_receipt_id",
+      "human_approval_required",
+      "outcome_ref"
+    ]
+  },
+  "rollout": {
+    "initial_percent": 0,
+    "auto_expand": false,
+    "promotion_requires_human_approval": true,
+    "rollback_required": true
+  }
+}
