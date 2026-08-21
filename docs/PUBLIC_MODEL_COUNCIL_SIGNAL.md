@@ -17,6 +17,26 @@ Modern agent systems should not depend on one universal model. They should route
 | Council Review | Nemotron-style frontier reasoning models | hard decisions, high-context synthesis, review gates |
 | Lightweight Fallback | Gemma / Llama / OSS models | cost-aware fallback and edge-compatible execution |
 
+## Model Watch Principle
+
+HERMES CITY may track public model-watch signals from researchers, model hosts, benchmark authors, hardware testers, and quantization projects. These signals are discovery inputs, not automatic production approvals.
+
+A meaningful performance signal binds the whole execution profile:
+
+```text
+model/checkpoint
++ quantization
++ runtime
++ hardware
++ context actually tested
++ memory/cache policy
++ task quality
++ latency/throughput
++ provenance
+```
+
+Configured context capacity is not the same as useful occupied context proven under load. Public benchmark claims remain external evidence until reproduced or otherwise verified through the governed evaluation path.
+
 ## Why HERMES CITY Tracks This
 
 Agent-native commerce requires:
@@ -28,15 +48,17 @@ Agent-native commerce requires:
 - fallback lanes
 - public/private boundaries
 - no permanent ambient access
+- evidence-aware model/runtime selection
 
 ## Public Routing Principle
 
 ```text
 agent intent
   -> classify task
-  -> choose model lane
+  -> choose approved model/runtime lane
   -> check authority
   -> execute bounded action
+  -> validate outcome
   -> log receipt
 ```
 
@@ -44,4 +66,4 @@ agent intent
 
 HERMES CITY may publish public routing concepts and ecosystem signals.
 
-Private production routing logic, credentials, wallet flows, internal prompts, customer data, and undisclosed Agentropolis implementation details stay out of this repository.
+Private production routing logic, credentials, wallet flows, internal prompts, customer data, undisclosed evaluation thresholds, and undisclosed Agentropolis implementation details stay out of this repository.
