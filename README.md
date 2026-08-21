@@ -2,7 +2,7 @@
 
 Public coordination layer for the AGENTROPOLIS ecosystem.
 
-HERMES CITY is the public-facing civic shell for agent-native commerce, ecosystem intelligence, model routing, MCP tooling, district recruitment, community participation, and the AGENTROPOLIS Social Transit Grid.
+HERMES CITY is the public-facing civic shell for agent-native commerce, ecosystem intelligence, model routing, MCP tooling, district recruitment, community participation, HERMES Bot Mode organization, and the AGENTROPOLIS Social Transit Grid.
 
 Agentropolis is the private city OS.  
 HERMES CITY is the public signal layer.
@@ -12,12 +12,14 @@ HERMES CITY is the public signal layer.
 ## Public Pages
 
 - `/` — HERMES CITY public civic shell and mini 3D Agentropolis
+- `/botmode/` — public-safe HERMES Bot Mode organization map: verticals, horizontal functions, R&D, municipal departments, and Mission Pods
 - `/community/` — HERMES Community participation and governed onboarding pathways
 - `/social/` — public-safe architecture for the HERMES Social Surface and AGENTROPOLIS Social Transit Grid
 - `/super-hermes/` — capability intelligence office
 
 The private implementation repositories remain separate:
 
+- `AGENTROPOLIS-CITY-OF-AGENTS/agentropolis` — private city OS, district orchestration, Layer-1 governance, execution policy, and internal Bot Mode implementation
 - `wiredchaos/AGENTROPOLIS-DOCK` — onboarding, review, district alignment, and admission logic
 - `wiredchaos/HERMES-SOCIAL` — private social adapters, orchestration, authenticated sessions, and execution controls
 
@@ -25,7 +27,7 @@ The private implementation repositories remain separate:
 
 ## Purpose
 
-HERMES CITY explains how autonomous agents, tools, wallets, workflows, model routers, MCP servers, social adapters, communities, and district recruiters can coordinate safely.
+HERMES CITY explains how autonomous agents, tools, wallets, workflows, model routers, MCP servers, social adapters, communities, district recruiters, and Bot Mode mission teams can coordinate safely.
 
 This repo is for public-safe architecture only.
 
@@ -46,9 +48,12 @@ It does not expose:
 ```text
 Operator intent
   -> HERMES Dispatch
+  -> district / vertical owner
+  -> required horizontal functions
   -> Model Council routing
-  -> MCP Registry
-  -> Policy Gate
+  -> MCP Registry / Skill Registry
+  -> Policy + 54-T gates
+  -> scoped Mission Pod
   -> tool / workflow / social / community lane
   -> validation
   -> receipt log
@@ -56,6 +61,49 @@ Operator intent
 
 HERMES routes the work.  
 HERMES does not replace Agentropolis.
+
+---
+
+## HERMES Bot Mode
+
+HERMES Bot Mode uses a governed matrix city model.
+
+```text
+Human Mission Control
+        |
+HERMES Executive Core
+        |
+  +-----+-----+
+  |           |
+Verticals  Horizontals
+  |           |
+  +-----+-----+
+        |
+   Mission Pod
+        |
+ Verify -> Receipt -> Audit
+```
+
+Canonical doctrine:
+
+- **Verticals own outcomes.** Districts, products, civic services, and platform chains carry mission accountability.
+- **Horizontals own standards.** R&D, Engineering, Product, Security, Governance, Evaluation, Finance, Legal, Data, SRE, GTM, People, Procurement, and Communications span the city.
+- **Mission Pods do the work.** HERMES assembles temporary cross-functional teams with minimum necessary capability and context.
+- **Layer-1 governance owns authority.** A district request never grants unrestricted tool, data, model, credential, or execution access.
+- **Human Mission Control retains sovereignty.** Elevated actions remain governed and reviewable.
+
+R&D is a first-class institution rather than a subteam of routine engineering. The public research path is:
+
+```text
+hypothesis -> sandbox -> experiment -> benchmark -> adversarial review
+-> reproducibility -> assurance -> pilot -> production candidate
+```
+
+The city model also recognizes municipal functions: civic administration, public works and utilities, transit and logistics, planning and construction, emergency management, public safety and resilience, economic development, education and research, culture and recreation, sustainability, and civic intelligence.
+
+Machine-readable public topology: `config/hermes-city-org-topology.json`.
+
+Detailed doctrine: `docs/HERMES_BOTMODE_CITY_MATRIX.md`.
 
 ---
 
@@ -86,7 +134,7 @@ The public social page documents the platform-agnostic Social Surface embedded i
 External social channels
   -> API / browser / ingest adapters
   -> AGENTROPOLIS Ingest Membrane
-  -> ASBE + policy checks
+  -> policy and assurance checks
   -> normalized Social Event
   -> HERMES council
   -> ignore / analyze / draft / escalate / approve / execute
@@ -151,7 +199,7 @@ The learning and scoring layer. Tracks lead quality, conversion signals, engagem
 
 ## Public-Safe Deployment Lanes
 
-HERMES CITY may document optional local, cloud, model, and tool gateway lanes where they remain subordinate to HERMES Dispatch, the Model Council, the MCP Registry, and the Policy Gate.
+HERMES CITY may document optional local, cloud, model, and tool gateway lanes where they remain subordinate to HERMES Dispatch, the Model Council, the MCP Registry, the Skill Registry, and the Policy Gate.
 
 Managed access must retain BYOK, BYOH, local-tool, and human-review fallback lanes.
 
