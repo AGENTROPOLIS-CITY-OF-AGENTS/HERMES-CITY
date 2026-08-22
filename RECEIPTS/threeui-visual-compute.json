@@ -1,0 +1,37 @@
+{
+  "receipt_version": "1.0",
+  "type": "public_visual_dependency_evaluation",
+  "status": "approved_with_boundary",
+  "recorded_at": "2026-08-22",
+  "provider": {
+    "name": "ThreeUI Community",
+    "repository": "MengTo/threeui",
+    "package": "@designcodeio/threeui",
+    "version": "0.3.0",
+    "license": "MIT"
+  },
+  "approved_surface": "HERMES CITY public presentation layer",
+  "approved_components": [
+    "DiagnosticsPanel",
+    "ParticleNetwork",
+    "PerformanceGauges",
+    "PortalFieldCollection"
+  ],
+  "constraints": [
+    "Presentation only; no execution authority",
+    "No private Agentropolis runtime data or credentials",
+    "No production wallet or authenticated social state",
+    "GitHub Pages assets must resolve relative to the deployed subpath",
+    "Third-party notices and upstream license obligations remain in force"
+  ],
+  "architecture": {
+    "layer": "application presentation",
+    "authority": "none",
+    "data_class": "public-safe only",
+    "private_runtime_dependency": false
+  },
+  "source_evidence": [
+    "https://github.com/MengTo/threeui",
+    "https://www.npmjs.com/package/@designcodeio/threeui"
+  ]
+}
