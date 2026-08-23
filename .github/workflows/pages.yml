@@ -1,7 +1,10 @@
-name: Deploy HERMES CITY to GitHub Pages
+name: Build and deploy HERMES CITY
 
 on:
   push:
+    branches:
+      - main
+  pull_request:
     branches:
       - main
   workflow_dispatch:
@@ -12,27 +15,58 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install visual dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build Visual Compute
+        run: npm run build
+
+      - name: Assemble public-safe site
+        run: |
+          mkdir -p _site
+          rsync -a \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='dist' \
+            --exclude='_site' \
+            --exclude='visual-compute' \
+            ./ _site/
+          mkdir -p _site/visual-compute
+          cp -a dist/visual-compute/. _site/visual-compute/
+
       - name: Configure Pages
+        if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
 
-      - name: Upload static site
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
 
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4

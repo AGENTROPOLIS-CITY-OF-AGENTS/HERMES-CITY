@@ -1,0 +1,20 @@
+{
+  "name": "hermes-city-public-shell",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build:visual": "vite build visual-compute --config visual-compute/vite.config.js --outDir ../dist/visual-compute --emptyOutDir",
+    "build": "npm run build:visual"
+  },
+  "dependencies": {
+    "@designcodeio/threeui": "0.3.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "three": "^0.149.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.1",
+    "vite": "^7.3.1"
+  }
+}
