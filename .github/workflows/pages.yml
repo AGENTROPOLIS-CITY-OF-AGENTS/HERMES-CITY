@@ -49,6 +49,18 @@ jobs:
           mkdir -p _site/visual-compute
           cp -a dist/visual-compute/. _site/visual-compute/
 
+      - name: Activate Agentropolis spatial runtime
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('_site/index.html')
+          s = p.read_text()
+          tag = '<script src="spatial-runtime.js" defer></script>'
+          if tag not in s:
+              s = s.replace('</head>', f'  {tag}\n</head>')
+              p.write_text(s)
+          PY
+
       - name: Configure Pages
         if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
