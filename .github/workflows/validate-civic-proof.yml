@@ -1,0 +1,330 @@
+name: Validate Civic Proof
+
+on:
+  push:
+    branches:
+      - feat/agentropolis-civic-proof
+    paths:
+      - integrations/hermes-desktop-civic-proof/**
+      - schemas/agentropolis-proof-receipt.schema.json
+      - skills/civic-proof/SKILL.md
+      - .github/workflows/validate-civic-proof.yml
+  pull_request:
+    paths:
+      - integrations/hermes-desktop-civic-proof/**
+      - schemas/agentropolis-proof-receipt.schema.json
+      - skills/civic-proof/SKILL.md
+      - .github/workflows/validate-civic-proof.yml
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out HERMES CITY
+        uses: actions/checkout@v4
+
+      - name: Check out current Hermes Agent
+        uses: actions/checkout@v4
+        with:
+          repository: NousResearch/hermes-agent
+          path: hermes-agent
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Parse desktop plugin
+        run: node --check integrations/hermes-desktop-civic-proof/plugin.js
+
+      - name: Validate skill and receipt contracts
+        run: |
+          python -m pip install --disable-pip-version-check --quiet jsonschema PyYAML
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          import jsonschema
+          import yaml
+
+          schema_path = Path('schemas/agentropolis-proof-receipt.schema.json')
+          schema = json.loads(schema_path.read_text(encoding='utf-8'))
+          jsonschema.Draft202012Validator.check_schema(schema)
+          validator = jsonschema.Draft202012Validator(schema, format_checker=jsonschema.FormatChecker())
+
+          valid = {
+              'receipt_id': 'receipt-0001',
+              'agent_id': 'hermes-local',
+              'district': 'HERMES CITY',
+              'mandate_id': 'mandate-001',
+              'task_hash': 'a' * 64,
+              'status': 'completed',
+              'started_at': '2026-08-03T17:00:00Z',
+              'finished_at': '2026-08-03T17:01:00Z',
+              'evidence': [
+                  {
+                      'kind': 'test',
+                      'digest': 'sha256:0123456789abcdef',
+                      'verified': True,
+                  }
+              ],
+              'thermodynamics': {
+                  'tool_entropy': 0.75,
+                  'drift_proxy': 0.10,
+                  'error_density': 0.02,
+                  'useful_work_proxy': 0.68,
+              },
+              'review': {
+                  'decision': 'needs_review',
+                  'reviewer': None,
+                  'notes': 'Authority remains unchanged.',
+              },
+          }
+          validator.validate(valid)
+
+          invalid = dict(valid)
+          invalid['task_hash'] = 'not-a-hash'
+          try:
+              validator.validate(invalid)
+          except jsonschema.ValidationError:
+              pass
+          else:
+              raise AssertionError('invalid task hash unexpectedly passed')
+
+          skill_text = Path('skills/civic-proof/SKILL.md').read_text(encoding='utf-8')
+          assert skill_text.startswith('---\n'), 'SKILL.md must start with YAML front matter'
+          _, front_matter, body = skill_text.split('---', 2)
+          metadata = yaml.safe_load(front_matter)
+          required = {
+              'name', 'version', 'display_name', 'description', 'district',
+              'pack', 'tags', 'tier', 'layer', 'metadata', 'chains_to',
+              'chains_from', 'orchestrated_by'
+          }
+          missing = required - set(metadata)
+          assert not missing, f'missing skill fields: {sorted(missing)}'
+          assert metadata['name'] == 'civic-proof'
+          assert metadata['tier'] == 'infrastructure'
+          assert 'Authority is a mandate' in body
+          print('contract validation passed')
+          PY
+
+      - name: Validate against current Hermes SDK and backend
+        run: |
+          node <<'JS'
+          const fs = require('node:fs')
+          const assert = require('node:assert/strict')
+
+          const plugin = fs.readFileSync('integrations/hermes-desktop-civic-proof/plugin.js', 'utf8')
+          const sdk = fs.readFileSync('hermes-agent/apps/desktop/src/sdk/index.ts', 'utf8')
+          const backend = fs.readFileSync('hermes-agent/plugins/hermes-achievements/dashboard/plugin_api.py', 'utf8')
+
+          const importBlock = plugin.match(/import\s*\{([\s\S]*?)\}\s*from\s*['"]@hermes\/plugin-sdk['"]/)
+          assert(importBlock, 'SDK import block not found')
+          const imported = importBlock[1]
+            .split(',')
+            .map(name => name.trim())
+            .filter(Boolean)
+
+          for (const name of imported) {
+            const exported = new RegExp(`export(?:\\s+const|\\s+function)?[\\s\\S]{0,120}\\b${name}\\b`).test(sdk)
+            assert(exported, `current Hermes SDK does not export ${name}`)
+          }
+
+          const specifiers = [...plugin.matchAll(/from\s*['"]([^'"]+)['"]/g)].map(match => match[1])
+          assert.deepEqual(specifiers.sort(), ['@hermes/plugin-sdk', 'react/jsx-runtime'].sort())
+
+          const requiredBackendFields = [
+            'total_tool_calls', 'total_errors', 'total_terminal_calls',
+            'total_patch_calls', 'total_file_reads_searches', 'total_web_calls',
+            'total_web_extract_calls', 'total_delegate_calls',
+            'total_process_calls', 'total_cron_calls', 'test_events',
+            'release_events', 'git_events', 'memory_write_events',
+            'session_count', 'terminal_calls', 'file_tool_calls', 'web_calls',
+            'delegate_calls', 'process_calls', 'cron_calls'
+          ]
+          for (const field of requiredBackendFields) {
+            assert(backend.includes(`"${field}"`), `achievements backend no longer exposes ${field}`)
+          }
+
+          assert(plugin.includes("const ID = 'hermes-achievements'"), 'REST namespace binding changed')
+          console.log('Hermes compatibility validation passed')
+          JS
+
+      - name: Smoke-test registration and rendering
+        run: |
+          rm -rf .ci-civic-proof
+          mkdir -p .ci-civic-proof/node_modules/@hermes/plugin-sdk
+          mkdir -p .ci-civic-proof/node_modules/react
+          cp integrations/hermes-desktop-civic-proof/plugin.js .ci-civic-proof/plugin.js
+
+          cat > .ci-civic-proof/package.json <<'JSON'
+          {
+            "private": true,
+            "type": "module"
+          }
+          JSON
+
+          cat > .ci-civic-proof/node_modules/@hermes/plugin-sdk/package.json <<'JSON'
+          {
+            "name": "@hermes/plugin-sdk",
+            "type": "module",
+            "exports": "./index.js"
+          }
+          JSON
+
+          cat > .ci-civic-proof/node_modules/@hermes/plugin-sdk/index.js <<'JS'
+          const component = name => props => ({ component: name, props: props || {} })
+
+          export const Badge = component('Badge')
+          export const Button = component('Button')
+          export const Codicon = component('Codicon')
+          export const ErrorState = component('ErrorState')
+          export const Skeleton = component('Skeleton')
+          export const Tip = component('Tip')
+          export const cn = (...values) => values.filter(Boolean).join(' ')
+          export const PALETTE_AREA = 'palette'
+          export const ROUTES_AREA = 'routes'
+          export const SIDEBAR_NAV_AREA = 'sidebar'
+          export const STATUSBAR_AREAS = { left: 'status.left', right: 'status.right' }
+          export const host = {
+            navigations: [],
+            navigate(path) { this.navigations.push(path) }
+          }
+          export function useQuery() {
+            return globalThis.__queryResult || {
+              data: null,
+              isLoading: false,
+              isError: true,
+              error: new Error('missing test query result'),
+              refetch() {}
+            }
+          }
+          JS
+
+          cat > .ci-civic-proof/node_modules/react/package.json <<'JSON'
+          {
+            "name": "react",
+            "type": "module",
+            "exports": {
+              "./jsx-runtime": "./jsx-runtime.js"
+            }
+          }
+          JSON
+
+          cat > .ci-civic-proof/node_modules/react/jsx-runtime.js <<'JS'
+          export function jsx(type, props) {
+            if (typeof type === 'function') return type(props || {})
+            return { type, props: props || {} }
+          }
+          export const jsxs = jsx
+          JS
+
+          cat > .ci-civic-proof/smoke.mjs <<'JS'
+          import assert from 'node:assert/strict'
+          import plugin from './plugin.js'
+          import { host } from '@hermes/plugin-sdk'
+
+          function flatten(value) {
+            if (value === null || value === undefined || typeof value === 'boolean') return ''
+            if (typeof value === 'string' || typeof value === 'number') return String(value)
+            if (Array.isArray(value)) return value.map(flatten).join(' ')
+            if (typeof value === 'object') return Object.values(value).map(flatten).join(' ')
+            return ''
+          }
+
+          assert.equal(plugin.id, 'hermes-achievements')
+          assert.equal(plugin.name, 'Agentropolis Civic Proof')
+          assert.equal(typeof plugin.register, 'function')
+
+          const contributions = []
+          plugin.register({
+            rest: async () => ({}),
+            registerMany(items) {
+              contributions.push(...items)
+              return () => {}
+            }
+          })
+
+          assert.equal(contributions.length, 4)
+          assert.deepEqual(
+            contributions.map(item => item.id).sort(),
+            ['civic-proof-chip', 'civic-proof-nav', 'civic-proof-open', 'civic-proof-page'].sort()
+          )
+
+          const page = contributions.find(item => item.id === 'civic-proof-page')
+          const chip = contributions.find(item => item.id === 'civic-proof-chip')
+          const command = contributions.find(item => item.id === 'civic-proof-open')
+
+          globalThis.__queryResult = {
+            data: {
+              unlocked_count: 12,
+              total_count: 60,
+              aggregate: {
+                session_count: 4,
+                total_tool_calls: 100,
+                total_errors: 5,
+                total_terminal_calls: 20,
+                total_patch_calls: 20,
+                total_file_reads_searches: 10,
+                total_web_calls: 15,
+                total_web_extract_calls: 5,
+                total_delegate_calls: 10,
+                total_process_calls: 5,
+                total_cron_calls: 5,
+                test_events: 5,
+                release_events: 2,
+                git_events: 5,
+                memory_write_events: 3
+              },
+              sessions: [
+                { started_at: 1, terminal_calls: 10, file_tool_calls: 10, web_calls: 5, delegate_calls: 0, process_calls: 0, cron_calls: 0 },
+                { started_at: 2, terminal_calls: 5, file_tool_calls: 10, web_calls: 5, delegate_calls: 5, process_calls: 0, cron_calls: 0 },
+                { started_at: 3, terminal_calls: 3, file_tool_calls: 5, web_calls: 3, delegate_calls: 3, process_calls: 2, cron_calls: 1 },
+                { started_at: 4, terminal_calls: 2, file_tool_calls: 5, web_calls: 2, delegate_calls: 2, process_calls: 3, cron_calls: 4 }
+              ]
+            },
+            isLoading: false,
+            isError: false,
+            error: null,
+            refetch() {}
+          }
+
+          const rendered = flatten(page.render())
+          assert.match(rendered, /AGENTROPOLIS CIVIC PROOF/)
+          assert.match(rendered, /AUTHORITY: NOT GRANTED/)
+          assert.match(rendered, /Receipts NOT CONNECTED/)
+          assert.match(rendered, /Reputation NOT CONNECTED/)
+          assert.match(rendered, /Authority DENIED BY DEFAULT/)
+          assert.doesNotMatch(rendered, /NaN|Infinity/)
+          assert.doesNotThrow(() => chip.render())
+
+          command.data.run()
+          assert.equal(host.navigations.at(-1), '/civic-proof')
+
+          globalThis.__queryResult = {
+            data: {
+              unlocked_count: 0,
+              total_count: 60,
+              aggregate: { session_count: 0, total_tool_calls: 0, total_errors: 0 },
+              sessions: []
+            },
+            isLoading: false,
+            isError: false,
+            error: null,
+            refetch() {}
+          }
+
+          const emptyRendered = flatten(page.render())
+          assert.doesNotMatch(emptyRendered, /NaN|Infinity/)
+          assert.doesNotMatch(
+            emptyRendered,
+            /35% thermodynamic health proxy/,
+            'empty telemetry must not receive a synthetic 35% health score'
+          )
+          console.log('runtime smoke test passed')
+          JS
+
+          node .ci-civic-proof/smoke.mjs

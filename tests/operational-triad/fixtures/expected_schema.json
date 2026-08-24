@@ -1,0 +1,28 @@
+{
+  "expected_content": "AGENTROPOLIS TRIAD ONLINE",
+  "expected_byte_count": 26,
+  "expected_sha256_prefix": "ee96ae005df0ce9fceddcd75f888d9a16f08711ea4f21ad39c777ff14239dd84",
+  "execution_packet_required_fields": [
+    "identity",
+    "mandate",
+    "task",
+    "contribution_mode",
+    "allowed_tools",
+    "prohibited_actions",
+    "workspace",
+    "budget",
+    "timeout",
+    "authority_limits",
+    "approval_thresholds",
+    "expected_output",
+    "measurement_method",
+    "receipt_destination",
+    "memory_writeback_target",
+    "shutdown_conditions"
+  ],
+  "child_agent_classes": ["strategist", "executor", "validator"],
+  "financial_authority_all_false": true,
+  "approval_thresholds_all_human_required": true,
+  "settlement_recommendation": "no financial settlement required",
+  "nemotron_verdicts": ["PASS", "FAIL", "QUARANTINE"]
+}

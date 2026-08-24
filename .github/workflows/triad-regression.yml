@@ -1,0 +1,45 @@
+name: Operational Triad Regression Test
+
+on:
+  push:
+    branches:
+      - main
+      - 'test/**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  triad-regression:
+    runs-on: windows-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run Operational Triad Regression Test
+        run: python tests/operational-triad/run_triad_tests.py --quiet
+
+      - name: Upload test report (JSON)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: triad-test-report-json
+          path: tests/operational-triad/test_report.json
+          if-no-files-found: warn
+
+      - name: Upload test report (ASCII)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: triad-test-report-ascii
+          path: tests/operational-triad/test_report.txt
+          if-no-files-found: warn

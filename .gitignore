@@ -1,23 +1,2 @@
-# AGENTROPOLIS REMEDIATION 2026-08-08
-# Local work protection: keep operational local artifacts out of the PUBLIC repo.
-# These are designated local writeback targets, not public repo content.
-
-# Local operational writeback targets (designated in neuro operating profile)
-memory/
-receipts/
-projects/
-triad-smoke-test.txt
-
-# Local-only operating profile (contains local absolute paths)
-config/neuro-operating-profile.json
-
-# Test artifacts (generated evidence, regenerable)
-tests/__pycache__/
-tests/operational-triad/test_report.json
-tests/operational-triad/test_report.txt
-
-# Python caches / venvs
-__pycache__/
-*.pyc
-.venv/
-.pytest_cache/
+node_modules/
+dist/

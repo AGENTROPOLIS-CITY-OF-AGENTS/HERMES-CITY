@@ -1,0 +1,281 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "hermes-city.pulse-receipt-event-schema.v1",
+  "title": "HERMES CITY Pulse Receipt Bridge Event Schema",
+  "type": "object",
+  "oneOf": [
+    { "$ref": "#/$defs/pulseActivityObserved" },
+    { "$ref": "#/$defs/hermesTaskStarted" },
+    { "$ref": "#/$defs/hermesTaskCompleted" },
+    { "$ref": "#/$defs/validationStarted" },
+    { "$ref": "#/$defs/validationPassed" },
+    { "$ref": "#/$defs/validationFailed" },
+    { "$ref": "#/$defs/approvalApproved" },
+    { "$ref": "#/$defs/approvalRejected" },
+    { "$ref": "#/$defs/receiptCreated" }
+  ],
+  "$defs": {
+    "baseEvent": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "event_id",
+        "event_type",
+        "source",
+        "occurred_at",
+        "workspace_id",
+        "visibility"
+      ],
+      "properties": {
+        "schema_version": { "type": "string", "const": "1.0.0" },
+        "event_id": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+        },
+        "event_type": { "type": "string" },
+        "source": {
+          "type": "string",
+          "enum": [
+            "git_city_pulse",
+            "hermes_runtime",
+            "validation_engine",
+            "mission_control",
+            "receipt_bridge"
+          ]
+        },
+        "occurred_at": { "type": "string", "format": "date-time" },
+        "workspace_id": { "type": "string", "minLength": 1 },
+        "visibility": { "type": "string", "enum": ["public_safe"] },
+        "correlation_id": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "payload": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "pulseActivityObserved": {
+      "allOf": [
+        { "$ref": "#/$defs/baseEvent" },
+        {
+          "required": ["event_type", "source", "payload"],
+          "properties": {
+            "event_type": { "const": "pulse.activity_observed" },
+            "source": { "const": "git_city_pulse" },
+            "payload": {
+              "type": "object",
+              "required": ["activity_class", "observation_scope"],
+              "properties": {
+                "activity_class": {
+                  "type": "string",
+                  "enum": [
+                    "editor_activity",
+                    "file_activity",
+                    "terminal_activity",
+                    "task_activity",
+                    "test_activity",
+                    "git_activity"
+                  ]
+                },
+                "observation_scope": { "type": "string", "const": "workspace_presence" },
+                "activity_freshness_window_ms": { "type": "integer", "minimum": 1000 }
+              },
+              "additionalProperties": false
+            }
+          },
+          "not": {
+            "anyOf": [
+              { "required": ["correlation_id"] },
+              {
+                "properties": {
+                  "payload": {
+                    "anyOf": [
+                      { "required": ["actor_identity"] },
+                      { "required": ["task_success"] },
+                      { "required": ["validation_success"] },
+                      { "required": ["deployment"] },
+                      { "required": ["approval"] },
+                      { "required": ["production_readiness"] }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "hermesTaskStarted": {
+      "allOf": [
+        { "$ref": "#/$defs/baseEvent" },
+        {
+          "required": ["event_type", "source", "correlation_id", "payload"],
+          "properties": {
+            "event_type": { "const": "hermes.task_started" },
+            "source": { "const": "hermes_runtime" },
+            "payload": {
+              "type": "object",
+              "required": ["task_name", "lane", "role"],
+              "properties": {
+                "task_name": { "type": "string", "minLength": 1 },
+                "lane": { "type": "string", "minLength": 1 },
+                "role": { "type": "string", "const": "bounded_workspace_operator" }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "hermesTaskCompleted": {
+      "allOf": [
+        { "$ref": "#/$defs/baseEvent" },
+        {
+          "required": ["event_type", "source", "correlation_id", "payload"],
+          "properties": {
+            "event_type": { "const": "hermes.task_completed" },
+            "source": { "const": "hermes_runtime" },
+            "payload": {
+              "type": "object",
+              "required": ["completion_status"],
+              "properties": {
+                "completion_status": { "type": "string", "enum": ["success", "failed", "partial", "aborted"] },
+                "commit_hash": { "type": "string", "pattern": "^[0-9a-f]{7,40}$" }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "validationStarted": {
+      "allOf": [
+        { "$ref": "#/$defs/baseEvent" },
+        {
+          "required": ["event_type", "source", "correlation_id", "payload"],
+          "properties": {
+            "event_type": { "const": "validation.started" },
+            "source": { "const": "validation_engine" },
+            "payload": {
+              "type": "object",
+              "required": ["validation_id"],
+              "properties": {
+                "validation_id": { "type": "string", "minLength": 1 }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "validationPassed": {
+      "allOf": [
+        { "$ref": "#/$defs/baseEvent" },
+        {
+          "required": ["event_type", "source", "correlation_id", "evidence_refs", "payload"],
+          "properties": {
+            "event_type": { "const": "validation.passed" },
+            "source": { "const": "validation_engine" },
+            "payload": {
+              "type": "object",
+              "required": ["validation_id"],
+              "properties": {
+                "validation_id": { "type": "string", "minLength": 1 }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "validationFailed": {
+      "allOf": [
+        { "$ref": "#/$defs/baseEvent" },
+        {
+          "required": ["event_type", "source", "correlation_id", "evidence_refs", "payload"],
+          "properties": {
+            "event_type": { "const": "validation.failed" },
+            "source": { "const": "validation_engine" },
+            "payload": {
+              "type": "object",
+              "required": ["validation_id", "reason"],
+              "properties": {
+                "validation_id": { "type": "string", "minLength": 1 },
+                "reason": { "type": "string", "minLength": 1 }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "approvalApproved": {
+      "allOf": [
+        { "$ref": "#/$defs/baseEvent" },
+        {
+          "required": ["event_type", "source", "correlation_id", "payload"],
+          "properties": {
+            "event_type": { "const": "approval.approved" },
+            "source": { "const": "mission_control" },
+            "payload": {
+              "type": "object",
+              "required": ["approval_id"],
+              "properties": {
+                "approval_id": { "type": "string", "minLength": 1 }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "approvalRejected": {
+      "allOf": [
+        { "$ref": "#/$defs/baseEvent" },
+        {
+          "required": ["event_type", "source", "correlation_id", "payload"],
+          "properties": {
+            "event_type": { "const": "approval.rejected" },
+            "source": { "const": "mission_control" },
+            "payload": {
+              "type": "object",
+              "required": ["approval_id", "reason"],
+              "properties": {
+                "approval_id": { "type": "string", "minLength": 1 },
+                "reason": { "type": "string", "minLength": 1 }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "receiptCreated": {
+      "allOf": [
+        { "$ref": "#/$defs/baseEvent" },
+        {
+          "required": ["event_type", "source", "correlation_id", "evidence_refs", "payload"],
+          "properties": {
+            "event_type": { "const": "receipt.created" },
+            "source": { "const": "receipt_bridge" },
+            "payload": {
+              "type": "object",
+              "required": ["receipt_id", "receipt_path"],
+              "properties": {
+                "receipt_id": { "type": "string", "minLength": 1 },
+                "receipt_path": { "type": "string", "minLength": 1 }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    }
+  }
+}
