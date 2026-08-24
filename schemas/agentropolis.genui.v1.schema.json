@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentropolis.example/schemas/agentropolis.genui.v1.schema.json",
+  "title": "AGENTROPOLIS GenUI Manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "surface_hint", "title", "components", "provenance", "receipt_policy"],
+  "properties": {
+    "schema": {"const": "agentropolis.genui/v1"},
+    "surface_hint": {"enum": ["auto", "hud", "workspace", "tui", "mobile", "3d"]},
+    "title": {"type": "string", "minLength": 1, "maxLength": 160},
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {"$ref": "#/$defs/component"}
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "source_type", "source_ref"],
+      "properties": {
+        "required": {"const": true},
+        "source_type": {"enum": ["mcp", "skill", "be", "operator", "fixture"]},
+        "source_ref": {"type": "string", "minLength": 1, "maxLength": 512}
+      }
+    },
+    "receipt_policy": {"enum": ["never", "on_action", "always"]}
+  },
+  "$defs": {
+    "base": {
+      "type": "object",
+      "required": ["type", "id"],
+      "properties": {
+        "type": {"type": "string"},
+        "id": {"type": "string", "pattern": "^[a-zA-Z0-9._:-]{1,96}$"},
+        "label": {"type": "string", "maxLength": 160}
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "capability_handle", "policy_scope", "impact"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-zA-Z0-9._:-]{1,96}$"},
+        "label": {"type": "string", "minLength": 1, "maxLength": 80},
+        "capability_handle": {"type": "string", "pattern": "^cap://[a-zA-Z0-9._:/-]+$"},
+        "policy_scope": {"type": "string", "pattern": "^scope://[a-zA-Z0-9._:/-]+$"},
+        "impact": {"enum": ["read", "low", "medium", "high", "irreversible"]},
+        "confirmation": {"enum": ["none", "human", "dual_control"]}
+      }
+    },
+    "component": {
+      "oneOf": [
+        {
+          "allOf": [
+            {"$ref": "#/$defs/base"},
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type", "id", "label", "value"],
+              "properties": {
+                "type": {"const": "metric"},
+                "id": {"type": "string"},
+                "label": {"type": "string"},
+                "value": {"type": ["number", "string"]},
+                "unit": {"type": "string", "maxLength": 24}
+              }
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "id", "text"],
+          "properties": {
+            "type": {"enum": ["text", "status"]},
+            "id": {"type": "string"},
+            "label": {"type": "string"},
+            "text": {"type": "string", "maxLength": 4000},
+            "state": {"enum": ["info", "ok", "warn", "blocked", "unknown"]}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "id", "series"],
+          "properties": {
+            "type": {"const": "sparkline"},
+            "id": {"type": "string"},
+            "label": {"type": "string"},
+            "series": {"type": "array", "minItems": 2, "maxItems": 512, "items": {"type": "number"}}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "id", "actions"],
+          "properties": {
+            "type": {"const": "action_group"},
+            "id": {"type": "string"},
+            "label": {"type": "string"},
+            "actions": {"type": "array", "minItems": 1, "maxItems": 12, "items": {"$ref": "#/$defs/action"}}
+          }
+        }
+      ]
+    }
+  }
+}

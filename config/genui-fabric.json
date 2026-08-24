@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "name": "genui-fabric",
+  "mode": "closed_beta",
+  "enabled": true,
+  "feature_flag": "genui_surface_fabric",
+  "schema": "agentropolis.genui/v1",
+  "default_surface": "auto",
+  "allowed_surfaces": ["hud", "workspace", "tui", "mobile", "3d"],
+  "allowed_components": [
+    "metric",
+    "text",
+    "status",
+    "sparkline",
+    "table",
+    "timeline",
+    "queue",
+    "action_group"
+  ],
+  "security": {
+    "arbitrary_html": false,
+    "arbitrary_javascript": false,
+    "inline_event_handlers": false,
+    "raw_credentials_in_manifest": false,
+    "unknown_components": "degrade_to_status",
+    "require_provenance": true,
+    "require_policy_scope_for_actions": true,
+    "require_capability_handle_for_actions": true,
+    "require_54t_preflight_for_actions": true,
+    "high_impact_action_mode": "deny_without_dual_control"
+  },
+  "actions": {
+    "beta_default": "simulate",
+    "state_change_requires_receipt": true,
+    "receipt_policy": "on_action",
+    "capability_handle_prefix": "cap://",
+    "policy_scope_prefix": "scope://"
+  },
+  "adapters": {
+    "mcp": "normalized_result_envelope",
+    "be": "capability_handle_only",
+    "skinscape": "presentation_only"
+  },
+  "beta": {
+    "rendering_enabled": true,
+    "live_external_actions_enabled": false,
+    "production_secrets_allowed": false,
+    "human_approval_required_for_promotion": true
+  }
+}

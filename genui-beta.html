@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HERMES CITY GenUI Beta</title>
+  <link rel="stylesheet" href="./genui-beta.css" />
+</head>
+<body class="genui-beta-page">
+  <main class="genui-beta-wrap">
+    <div class="genui-beta-kicker">HERMES CITY / CLOSED BETA / GENUI FABRIC</div>
+    <h1>Portable semantic interface test surface</h1>
+    <p>Reference renderer for <code>agentropolis.genui/v1</code>. State-changing actions are simulation-only in this public-safe beta.</p>
+    <div id="genui-root" aria-live="polite"></div>
+    <h2>Action receipt preview</h2>
+    <div id="genui-log" class="genui-log">No action requested.</div>
+  </main>
+  <script type="module">
+    import { renderGenUI } from "./genui-renderer.js";
+
+    const root = document.querySelector("#genui-root");
+    const log = document.querySelector("#genui-log");
+    const response = await fetch("./tests/fixtures/genui/market.valid.json", { cache: "no-store" });
+    if (!response.ok) throw new Error(`manifest fetch failed: ${response.status}`);
+    const manifest = await response.json();
+    renderGenUI(root, manifest, { liveExternalActions: false });
+
+    window.addEventListener("agentropolis:genui-action", (event) => {
+      const receipt = {
+        schema: "agentropolis.action-receipt/v1-preview",
+        timestamp: new Date().toISOString(),
+        policy_state: "closed_beta",
+        execution: "not_performed",
+        ...event.detail
+      };
+      log.textContent = JSON.stringify(receipt, null, 2);
+    });
+  </script>
+</body>
+</html>

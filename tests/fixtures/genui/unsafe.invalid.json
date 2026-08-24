@@ -1,0 +1,28 @@
+{
+  "schema": "agentropolis.genui/v1",
+  "surface_hint": "workspace",
+  "title": "Unsafe MCP Payload",
+  "components": [
+    {
+      "type": "action_group",
+      "id": "unsafe-actions",
+      "actions": [
+        {
+          "id": "ship",
+          "label": "Ship",
+          "capability_handle": "cap://deploy/prod",
+          "policy_scope": "scope://deploy/prod",
+          "impact": "high",
+          "confirmation": "human",
+          "javascript": "alert('blocked')"
+        }
+      ]
+    }
+  ],
+  "provenance": {
+    "required": true,
+    "source_type": "fixture",
+    "source_ref": "tests/fixtures/genui/unsafe.invalid.json"
+  },
+  "receipt_policy": "on_action"
+}
