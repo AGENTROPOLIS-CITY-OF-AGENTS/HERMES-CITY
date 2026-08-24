@@ -1,0 +1,247 @@
+{
+  "schema_version": "1.0.0",
+  "id": "hermes-city.pulse-governed-state-machine.v1",
+  "version": "1.0.0",
+  "states": [
+    "IDLE",
+    "ACTIVE",
+    "EXECUTING",
+    "VALIDATING",
+    "AWAITING_APPROVAL",
+    "RECEIPT_VERIFIED",
+    "FAILED"
+  ],
+  "config": {
+    "activity_freshness_window_ms": 300000
+  },
+  "transitions": [
+    {
+      "name": "idle_to_active_on_pulse",
+      "from": "IDLE",
+      "to": "ACTIVE",
+      "event_type": "pulse.activity_observed",
+      "required_evidence": [
+        "event_type=pulse.activity_observed",
+        "source=git_city_pulse",
+        "visibility=public_safe"
+      ],
+      "prohibited_assumptions": [
+        "actor_identity_proven",
+        "task_success_proven",
+        "validation_success_proven",
+        "deployment_proven",
+        "approval_proven",
+        "production_readiness_proven"
+      ]
+    },
+    {
+      "name": "active_to_executing_on_task_start",
+      "from": "ACTIVE",
+      "to": "EXECUTING",
+      "event_type": "hermes.task_started",
+      "required_evidence": [
+        "source=hermes_runtime",
+        "correlation_id_present",
+        "payload.role=bounded_workspace_operator"
+      ],
+      "prohibited_assumptions": [
+        "task_success_proven",
+        "approval_proven"
+      ]
+    },
+    {
+      "name": "idle_to_executing_on_task_start",
+      "from": "IDLE",
+      "to": "EXECUTING",
+      "event_type": "hermes.task_started",
+      "required_evidence": [
+        "source=hermes_runtime",
+        "correlation_id_present",
+        "payload.role=bounded_workspace_operator"
+      ],
+      "prohibited_assumptions": [
+        "task_success_proven",
+        "approval_proven"
+      ]
+    },
+    {
+      "name": "executing_records_task_complete_success",
+      "from": "EXECUTING",
+      "to": "EXECUTING",
+      "event_type": "hermes.task_completed",
+      "guard": {
+        "payload.completion_status": "success"
+      },
+      "required_evidence": [
+        "source=hermes_runtime",
+        "correlation_id_present"
+      ],
+      "prohibited_assumptions": [
+        "validation_success_proven",
+        "approval_proven",
+        "receipt_verified",
+        "production_readiness_proven"
+      ]
+    },
+    {
+      "name": "executing_to_validating_on_validation_started",
+      "from": "EXECUTING",
+      "to": "VALIDATING",
+      "event_type": "validation.started",
+      "required_prior_events": [
+        "hermes.task_completed(payload.completion_status=success)"
+      ],
+      "required_evidence": [
+        "source=validation_engine",
+        "correlation_id_present",
+        "same_correlation_id_for_validation_started_and_hermes_task_completed_success"
+      ],
+      "prohibited_assumptions": [
+        "validation_success_proven",
+        "approval_proven",
+        "production_readiness_proven"
+      ]
+    },
+    {
+      "name": "executing_to_failed_on_task_complete_failed",
+      "from": "EXECUTING",
+      "to": "FAILED",
+      "event_type": "hermes.task_completed",
+      "guard": {
+        "payload.completion_status": "failed"
+      },
+      "required_evidence": [
+        "source=hermes_runtime",
+        "correlation_id_present"
+      ],
+      "prohibited_assumptions": [
+        "approval_proven"
+      ]
+    },
+    {
+      "name": "executing_to_failed_on_task_complete_partial",
+      "from": "EXECUTING",
+      "to": "FAILED",
+      "event_type": "hermes.task_completed",
+      "guard": {
+        "payload.completion_status": "partial"
+      },
+      "required_evidence": [
+        "source=hermes_runtime",
+        "correlation_id_present"
+      ],
+      "prohibited_assumptions": [
+        "approval_proven"
+      ]
+    },
+    {
+      "name": "executing_to_failed_on_task_complete_aborted",
+      "from": "EXECUTING",
+      "to": "FAILED",
+      "event_type": "hermes.task_completed",
+      "guard": {
+        "payload.completion_status": "aborted"
+      },
+      "required_evidence": [
+        "source=hermes_runtime",
+        "correlation_id_present"
+      ],
+      "prohibited_assumptions": [
+        "approval_proven"
+      ]
+    },
+    {
+      "name": "validating_to_awaiting_approval_on_validation_passed",
+      "from": "VALIDATING",
+      "to": "AWAITING_APPROVAL",
+      "event_type": "validation.passed",
+      "required_evidence": [
+        "source=validation_engine",
+        "correlation_id_present",
+        "evidence_refs_present"
+      ],
+      "prohibited_assumptions": [
+        "approval_proven",
+        "receipt_verified"
+      ]
+    },
+    {
+      "name": "validating_to_failed_on_validation_failed",
+      "from": "VALIDATING",
+      "to": "FAILED",
+      "event_type": "validation.failed",
+      "required_evidence": [
+        "source=validation_engine",
+        "correlation_id_present",
+        "evidence_refs_present"
+      ],
+      "prohibited_assumptions": [
+        "approval_proven",
+        "receipt_verified"
+      ]
+    },
+    {
+      "name": "awaiting_approval_to_failed_on_rejection",
+      "from": "AWAITING_APPROVAL",
+      "to": "FAILED",
+      "event_type": "approval.rejected",
+      "required_evidence": [
+        "source=mission_control",
+        "correlation_id_present",
+        "payload.approval_id_present"
+      ],
+      "prohibited_assumptions": [
+        "receipt_verified"
+      ]
+    },
+    {
+      "name": "awaiting_approval_records_approved_authority",
+      "from": "AWAITING_APPROVAL",
+      "to": "AWAITING_APPROVAL",
+      "event_type": "approval.approved",
+      "required_evidence": [
+        "source=mission_control",
+        "correlation_id_present",
+        "payload.approval_id_present"
+      ],
+      "prohibited_assumptions": [
+        "receipt_verified"
+      ]
+    },
+    {
+      "name": "awaiting_approval_to_receipt_verified",
+      "from": "AWAITING_APPROVAL",
+      "to": "RECEIPT_VERIFIED",
+      "event_type": "receipt.created",
+      "required_prior_events": [
+        "hermes.task_completed(payload.completion_status=success)",
+        "validation.passed",
+        "approval.approved"
+      ],
+      "required_evidence": [
+        "source=receipt_bridge",
+        "correlation_id_present",
+        "evidence_refs_present",
+        "same_correlation_id_for_hermes_task_completed_success_validation_passed_approval_approved_receipt_created"
+      ],
+      "prohibited_assumptions": [
+        "pulse_alone_proves_success",
+        "pulse_alone_proves_approval",
+        "pulse_alone_proves_production_readiness"
+      ]
+    },
+    {
+      "name": "active_to_idle_on_freshness_expiry",
+      "from": "ACTIVE",
+      "to": "IDLE",
+      "event_type": "system.freshness_expired",
+      "required_evidence": [
+        "no_new_pulse_activity_within_activity_freshness_window_ms"
+      ],
+      "prohibited_assumptions": [
+        "historical_evidence_deleted",
+        "receipt_invalidated"
+      ]
+    }
+  ]
+}

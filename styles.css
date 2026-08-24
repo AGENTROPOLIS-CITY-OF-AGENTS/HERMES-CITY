@@ -158,8 +158,116 @@ pre { margin: 0; padding: 2rem; min-height: 240px; white-space: pre-wrap; color:
   .nav { align-items: flex-start; flex-direction: column; }
 }
 
+@media (max-width: 900px) {
+  .nav { align-items: stretch; gap: 0.5rem; }
+  .nav nav { flex-wrap: wrap; justify-content: flex-start; }
+  .nav nav a { padding: 0.5rem 0.25rem; min-height: 2.75rem; }
+}
+
 @media (max-width: 560px) {
   .cards { grid-template-columns: 1fr; }
-  .nav nav { flex-wrap: wrap; }
+  .nav { padding-top: 0.75rem; }
+  .brand { min-height: 2.75rem; }
+  .nav nav { width: 100%; }
+  .nav nav a { flex: 1 1 auto; text-align: left; min-height: 2.75rem; }
   .orbital-card { min-height: 360px; }
+}
+
+/* ============ B1 production hardening ============ */
+
+/* Keyboard focus visibility */
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--cyan);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Skip link: hidden until focused */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.9rem 1.2rem;
+  background: var(--panel-strong);
+  color: var(--text);
+  border: 1px solid var(--cyan);
+  border-radius: 0 0 0.9rem 0;
+  font-weight: 800;
+}
+.skip-link:focus {
+  left: 0;
+}
+
+/* 3D city labels (created by app.js) */
+.city-label-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+.city-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.9), 0 0 12px rgba(35, 231, 255, 0.35);
+  white-space: nowrap;
+  transition: opacity 160ms ease;
+  will-change: transform;
+}
+
+/* Static fallback when WebGL is unavailable */
+.no-webgl #city3d {
+  display: none;
+}
+.city-fallback {
+  border: 1px solid var(--line);
+  border-radius: 1.4rem;
+  background: var(--panel);
+  padding: 1.6rem;
+  box-shadow: var(--shadow);
+  max-width: 520px;
+}
+.city-fallback .city-fallback-heading {
+  color: var(--cyan);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+.city-fallback p {
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+.city-fallback ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0;
+  margin: 1rem 0 0;
+  list-style: none;
+}
+.city-fallback li {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.45rem 0.85rem;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .orbital-card::before, .orbital-card::after { animation: none; }
+  .card { transition: none; }
+  * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
 }

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "id": "hermes-city.genesis-rag-growth-bridge.v1",
   "version": "1.0.0",
-  "source_authority": "wiredchaos/agentropolis",
+  "source_authority": "AGENTROPOLIS-CITY-OF-AGENTS/agentropolis",
   "scope": "all_agents_and_workflows",
   "loop": [
     "retrieve",
