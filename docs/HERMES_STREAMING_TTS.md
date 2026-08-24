@@ -1,7 +1,7 @@
 # Hermes Streaming TTS Adoption — HERMES CITY
 
 **Status:** Adopted architecture; implementation verification required  
-**Canonical specification:** https://github.com/wiredchaos/agentropolis/blob/main/docs/HERMES_STREAMING_TTS.md
+**Canonical specification:** https://github.com/AGENTROPOLIS-CITY-OF-AGENTS/agentropolis/blob/main/docs/HERMES_STREAMING_TTS.md
 
 HERMES CITY uses streaming TTS for low-latency concierge dialogue, district briefings, status reports, and human-agent interaction.
 

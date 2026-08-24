@@ -8,7 +8,7 @@ HERMES CITY is the public signal and coordination layer. It may explain the rout
 
 Canonical city contract:
 
-`wiredchaos/agentropolis/docs/UNREAL_MCP_CITY_INTEGRATION.md`
+`AGENTROPOLIS-CITY-OF-AGENTS/agentropolis/docs/UNREAL_MCP_CITY_INTEGRATION.md`
 
 ## Public-safe pattern
 

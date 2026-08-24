@@ -42,6 +42,6 @@ Operator intent
 ## Boundaries
 
 - HERMES operates; Agentropolis defines city law.
-- HERMES may evaluate external resources, but canon changes flow back to `wiredchaos/agentropolis`.
+- HERMES may evaluate external resources, but canon changes flow back to `AGENTROPOLIS-CITY-OF-AGENTS/agentropolis`.
 - HERMES may call OpenClaude as an optional builder/audit assistant.
 - HERMES may publish proof receipts to Gitlawb only as an experiment, never as final governance authority.
