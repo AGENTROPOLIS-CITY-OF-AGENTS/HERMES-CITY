@@ -211,6 +211,21 @@ The site deploys automatically from `main` using `.github/workflows/pages.yml`.
 
 The deployment contains static public files only. No production secrets, social tokens, wallet credentials, or private runtime configuration belong in this repository.
 
+Live URL: https://wiredchaos.github.io/HERMES-CITY/
+
+Public routes (verified):
+
+- `/` — public civic shell and mini 3D Agentropolis
+- `/community/` — HERMES Community participation and governed onboarding pathways
+- `/social/` — public-safe architecture for the HERMES Social Surface and AGENTROPOLIS Social Transit Grid
+- `/super-hermes/` — capability intelligence office
+
+CI runs a validation job before every deployment (routes, local links, same-page anchors, HTML structure, accessibility gates, color contrast, canonical metadata, gitleaks secret scan). The deploy job is blocked until validation passes.
+
+Local verification (no `make` required):
+
+    python scripts/verify-site.py
+
 ---
 
 ## License
