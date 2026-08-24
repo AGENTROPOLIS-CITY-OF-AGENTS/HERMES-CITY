@@ -26,6 +26,33 @@ hermes-skill-library/
 └── README.md                  public overview
 ```
 
+## Operator Command Kernel
+
+The canonical operator-controlled reasoning protocol is:
+
+```txt
+docs/HERMES_NEURO_COMMAND_KERNEL.md
+```
+
+It provides model-agnostic slash-command modes for:
+
+- `/TRUTHMODE`
+- `/ELI10`
+- `/REDTEAM`
+- `/HORMOZI`
+- `/HUMAN`
+- `/FUTUREYOU`
+- `/UNLEARN`
+- `/80/20`
+- `/SOCRATES`
+- `/LINDYMODE`
+
+The kernel preserves human authority, evidence discipline, Anti-Moloch review, permission boundaries, and the HERMES execution chain:
+
+```txt
+Identity → Mandate → Plan → Execute → Receipt → Audit
+```
+
 ## Skills
 
 ```txt

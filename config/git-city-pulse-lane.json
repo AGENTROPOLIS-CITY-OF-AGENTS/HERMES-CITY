@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "id": "hermes-city.git-city-pulse-lane.v1",
+  "version": "1.0.0",
+  "status": "integration_candidate",
+  "layer": "public_signal",
+  "designation": "development_pulse_exchange",
+  "runtime": "hermes_agent",
+  "authority": "human_mission_control",
+  "workspace": {
+    "editor": "vscode",
+    "repository": "wiredchaos/HERMES-CITY",
+    "local_first": true
+  },
+  "signal_classes": [
+    "editor_activity",
+    "file_activity",
+    "terminal_activity",
+    "task_activity",
+    "test_activity",
+    "git_activity"
+  ],
+  "signal_limitations": [
+    "pulse_does_not_prove_actor_identity",
+    "pulse_does_not_prove_task_success",
+    "pulse_does_not_prove_test_success",
+    "pulse_does_not_prove_deployment",
+    "pulse_does_not_grant_authority"
+  ],
+  "verified_evidence": [
+    "artifact_path",
+    "test_result",
+    "commit_hash",
+    "approval_record",
+    "receipt_id"
+  ],
+  "public_states": [
+    "OFFLINE",
+    "PULSE",
+    "VALIDATING",
+    "VERIFIED",
+    "BLOCKED"
+  ],
+  "secrets": {
+    "storage": "local_extension_secret_storage",
+    "commit_allowed": false,
+    "prohibited": [
+      "git_city_api_key",
+      "personal_identifiers",
+      "terminal_output",
+      "private_agentropolis_data"
+    ]
+  },
+  "phase_2": {
+    "enabled": false,
+    "condition": "verified_supported_upstream_interface",
+    "required_controls": [
+      "task_id_correlation",
+      "policy_gate",
+      "artifact_validation",
+      "receipt_generation",
+      "actor_attribution_when_supported"
+    ]
+  }
+}

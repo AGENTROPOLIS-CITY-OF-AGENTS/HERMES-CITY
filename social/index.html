@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="The AGENTROPOLIS Social Transit Grid powers the governed HERMES Social Surface across Web2, messaging, community, and Web3 networks.">
+  <title>HERMES Social Surface | AGENTROPOLIS</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <div class="grid-bg"></div>
+  <header class="nav">
+    <a class="brand" href="../"><span class="brand-mark">HS</span><span>HERMES SOCIAL</span></a>
+    <nav>
+      <a href="../">City</a>
+      <a href="#surface">Surface</a>
+      <a href="#connectors">Connectors</a>
+      <a href="#governance">Governance</a>
+      <a href="../community/">Community</a>
+    </nav>
+  </header>
+
+  <main class="subpage-main">
+    <section class="section page-hero">
+      <div class="reveal">
+        <p class="eyebrow">AGENTROPOLIS Social Transit Grid</p>
+        <h1>One governed surface for every social channel.</h1>
+        <p class="lede">HERMES Social replaces platform-specific side panels with a modular, platform-agnostic command surface for Web2, messaging, community, and Web3 networks.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#surface">Inspect the surface</a>
+          <a class="button ghost" href="#governance">Review execution controls</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="surface" class="section split glass-section">
+      <div class="reveal">
+        <p class="eyebrow">HERMES Desktop</p>
+        <h2>Conversation in the center. Social intelligence on the right.</h2>
+        <p>The Social Surface presents platform tabs, a unified inbox, feeds, notifications, analytics, a cross-platform composer, and an approval queue while HERMES remains the primary orchestration interface.</p>
+      </div>
+      <div class="terminal reveal">
+        <div class="terminal-bar"><span></span><span></span><span></span></div>
+        <pre>LEFT
+sessions / agents / skills / memory
+
+CENTER
+HERMES / council / research / execution
+
+RIGHT
+platform tabs / inbox / feeds / analytics
+composer / drafts / approval queue</pre>
+      </div>
+    </section>
+
+    <section id="connectors" class="section">
+      <div class="section-head reveal">
+        <p class="eyebrow">Connector model</p>
+        <h2>Networks are adapters, not hard-coded product assumptions.</h2>
+      </div>
+      <div class="cards">
+        <article class="card reveal"><h3>Native API</h3><p>Structured reads, notifications, analytics, publishing, moderation, and messaging where platform permissions allow.</p></article>
+        <article class="card reveal"><h3>Secure Browser</h3><p>Isolated authenticated sessions for platforms with limited APIs. Raw credentials never enter model context.</p></article>
+        <article class="card reveal"><h3>Social Ingest</h3><p>Webhooks, RSS, APIs, approved crawlers, email notifications, and bounded browser extraction.</p></article>
+        <article class="card reveal"><h3>Adapter Registry</h3><p>Future networks can be added without rewriting the core interface or normalized event model.</p></article>
+      </div>
+    </section>
+
+    <section class="section split">
+      <div class="reveal">
+        <p class="eyebrow">Shared event model</p>
+        <h2>Every external signal becomes a normalized Social Event.</h2>
+        <p>Required fields include platform, account identity, event type, author, content, media, conversation identity, engagement, permissions, provenance, risk score, and timestamp.</p>
+      </div>
+      <div class="terminal reveal">
+        <div class="terminal-bar"><span></span><span></span><span></span></div>
+        <pre>external social activity
+  -> Ingest Membrane
+  -> ASBE + policy checks
+  -> normalized Social Event
+  -> HERMES council
+  -> ignore / analyze / draft
+  -> escalate / approve / execute
+  -> permanent action receipt</pre>
+      </div>
+    </section>
+
+    <section id="governance" class="section boundary reveal">
+      <p class="eyebrow">Permission and security doctrine</p>
+      <h2>Reading, reasoning, drafting, and execution are separate powers.</h2>
+      <div class="boundary-grid">
+        <div><h3>Permission states</h3><ul><li>Observe</li><li>Analyze</li><li>Draft</li><li>Execute</li><li>Per-account and per-channel scope</li></ul></div>
+        <div><h3>Security controls</h3><ul><li>Sealed credential vaults</li><li>Capability handles instead of secrets</li><li>Rate limits and execution budgets</li><li>Session isolation</li><li>Human approval or dual control for high-risk actions</li></ul></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head reveal"><p class="eyebrow">Channel classes</p><h2>Web2, community, messaging, and Web3 share one governed transit layer.</h2></div>
+      <div class="cards">
+        <article class="card reveal"><h3>Web2 Social</h3><p>X, LinkedIn, Instagram, Facebook, Threads, TikTok, YouTube, and Reddit.</p></article>
+        <article class="card reveal"><h3>Community</h3><p>Discord, Telegram, WhatsApp, Slack, and future messaging systems.</p></article>
+        <article class="card reveal"><h3>Web3 Social</h3><p>Farcaster, Bluesky, Lens, Mirror, Paragraph, Guild, Snapshot, and future protocols.</p></article>
+        <article class="card reveal"><h3>Public Boundary</h3><p>This page documents the architecture. Operational connectors and credentials remain private.</p></article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer"><p>HERMES Social Surface by WIRED CHAOS. Public-safe architecture for the AGENTROPOLIS Social Transit Grid.</p></footer>
+  <script type="module" src="../app.js"></script>
+</body>
+</html>
