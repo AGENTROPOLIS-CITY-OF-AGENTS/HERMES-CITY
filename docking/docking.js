@@ -8,10 +8,17 @@ const followBtn = document.querySelector("#followBtn");
 const resetBtn = document.querySelector("#resetBtn");
 const eventLog = document.querySelector("#eventLog");
 const agentCountEl = document.querySelector("#agentCount");
+const runtimeStateEl = document.querySelector("#runtimeState");
+const modeEl = document.querySelector(".mode");
 const selectedAgentEl = document.querySelector("#selectedAgent");
 const selectedActivityEl = document.querySelector("#selectedActivity");
 const selectedSpaceEl = document.querySelector("#selectedSpace");
 const selectedOriginEl = document.querySelector("#selectedOrigin");
+
+const LIVE_ENDPOINT = "/api/docking/spatial-events";
+const POLL_MS = 3000;
+let eventSourceMode = "SIMULATED";
+let seenLiveEvents = new Set();
 
 let renderer;
 try {
@@ -81,7 +88,8 @@ const places = {
   berth_exchange: { label: "BERTH EXCHANGE", pos: new THREE.Vector3(6.5, 0, 0), color: 0x23e7ff },
   dispatch_concourse: { label: "DISPATCH", pos: new THREE.Vector3(10, 0, 0), color: 0xb8ff42 },
   observation_gallery: { label: "OBSERVATION", pos: new THREE.Vector3(2.5, 0, 4), color: 0x23e7ff },
-  audit_terminal: { label: "AUDIT", pos: new THREE.Vector3(6.5, 0, 4), color: 0xffcb59 }
+  audit_terminal: { label: "AUDIT", pos: new THREE.Vector3(6.5, 0, 4), color: 0xffcb59 },
+  return_gate: { label: "RETURN GATE", pos: new THREE.Vector3(10, 0, -4), color: 0x23e7ff }
 };
 
 const labelLayer = document.createElement("div");
@@ -92,7 +100,7 @@ labelLayer.style.zIndex = "5";
 document.body.appendChild(labelLayer);
 const placeLabels = [];
 
-function facility(name, cfg, size = [2.4, 1.8, 2.4]) {
+function facility(cfg, size = [2.4, 1.8, 2.4]) {
   const group = new THREE.Group();
   const body = new THREE.Mesh(
     new THREE.BoxGeometry(...size),
@@ -117,25 +125,30 @@ function facility(name, cfg, size = [2.4, 1.8, 2.4]) {
   });
   labelLayer.appendChild(label);
   placeLabels.push({ label, pos: cfg.pos.clone().add(new THREE.Vector3(0, size[1] + 0.7, 0)) });
-  return group;
 }
 
-facility("arrival_gate", places.arrival_gate, [1.8, 3.6, 4.2]);
-facility("identity_customs", places.identity_customs, [2.4, 2.4, 3.2]);
-facility("quarantine_bay", places.quarantine_bay, [3.2, 1.8, 2.6]);
-facility("passport_hall", places.passport_hall, [2.8, 2.1, 3]);
-facility("social_commons", places.social_commons, [4.8, 1.5, 4.8]);
-facility("berth_exchange", places.berth_exchange, [2.8, 2.3, 3]);
-facility("dispatch_concourse", places.dispatch_concourse, [2.2, 3, 4.2]);
-facility("observation_gallery", places.observation_gallery, [4.6, 1.5, 2.2]);
-facility("audit_terminal", places.audit_terminal, [2.4, 1.8, 2.2]);
+facility(places.arrival_gate, [1.8, 3.6, 4.2]);
+facility(places.identity_customs, [2.4, 2.4, 3.2]);
+facility(places.quarantine_bay, [3.2, 1.8, 2.6]);
+facility(places.passport_hall, [2.8, 2.1, 3]);
+facility(places.social_commons, [4.8, 1.5, 4.8]);
+facility(places.berth_exchange, [2.8, 2.3, 3]);
+facility(places.dispatch_concourse, [2.2, 3, 4.2]);
+facility(places.observation_gallery, [4.6, 1.5, 2.2]);
+facility(places.audit_terminal, [2.4, 1.8, 2.2]);
+facility(places.return_gate, [2.2, 2.2, 2.4]);
 
 const routeMat = new THREE.LineBasicMaterial({ color: 0x23e7ff, transparent: true, opacity: 0.5 });
 const routePoints = ["arrival_gate", "identity_customs", "passport_hall", "social_commons", "berth_exchange", "dispatch_concourse"].map(k => places[k].pos.clone().add(new THREE.Vector3(0, 0.06, 0)));
-const route = new THREE.Line(new THREE.BufferGeometry().setFromPoints(routePoints), routeMat);
-scene.add(route);
+scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(routePoints), routeMat));
 
-function makeAgent(id, origin, hue, offsetZ = 0) {
+const palette = [0x23e7ff, 0xa855f7, 0xb8ff42, 0xffcb59, 0xff2b7d, 0x70a5ff];
+const agents = [];
+const agentById = new Map();
+
+function makeAgent(id, origin = "EXTERNAL", color = null) {
+  if (agentById.has(id)) return agentById.get(id);
+  const hue = color || palette[agents.length % palette.length];
   const group = new THREE.Group();
   const shell = new THREE.Mesh(
     new THREE.CapsuleGeometry(0.35, 0.9, 6, 12),
@@ -150,59 +163,118 @@ function makeAgent(id, origin, hue, offsetZ = 0) {
   halo.position.y = 1.85;
   halo.rotation.x = Math.PI / 2;
   group.add(halo);
-  group.position.copy(places.arrival_gate.pos).add(new THREE.Vector3(0, 0, offsetZ));
+  const offset = ((agents.length % 5) - 2) * 0.55;
+  group.position.copy(places.arrival_gate.pos).add(new THREE.Vector3(0, 0, offset));
   scene.add(group);
-  return {
-    id, origin, group, shell, halo,
+
+  const agent = {
+    id, origin, group, shell, halo, color: hue,
     activity: "moving", space: "arrival_gate", policy: "review",
     targetSpace: "arrival_gate", target: group.position.clone(), speed: 1.35,
-    routeIndex: 0, color: hue, lastEvent: "spawned"
+    lastEvent: "spawned"
   };
+  agents.push(agent);
+  agentById.set(id, agent);
+  agentCountEl.textContent = String(agents.length);
+  return agent;
 }
 
-const agents = [
-  makeAgent("MB-ORBIT-17", "MOLTBOOK", 0x23e7ff, -0.7),
-  makeAgent("MB-THREAD-04", "MOLTBOOK", 0xa855f7, 0.1),
-  makeAgent("EXT-KITE-22", "EXTERNAL", 0xb8ff42, 0.85)
-];
-agentCountEl.textContent = String(agents.length);
+function removeAllAgents() {
+  for (const agent of agents) scene.remove(agent.group);
+  agents.length = 0;
+  agentById.clear();
+  selectedAgent = null;
+  agentCountEl.textContent = "0";
+  refreshSelected();
+}
 
-const simulatedSequence = [
-  { at: 0.5, agent: 0, space: "identity_customs", activity: "reviewing", policy: "review", text: "MB-ORBIT-17 → identity customs" },
-  { at: 2.2, agent: 1, space: "identity_customs", activity: "reviewing", policy: "review", text: "MB-THREAD-04 → identity customs" },
-  { at: 3.2, agent: 0, space: "passport_hall", activity: "moving", policy: "allowed", text: "MB-ORBIT-17 identity verified" },
-  { at: 4.0, agent: 2, space: "identity_customs", activity: "reviewing", policy: "review", text: "EXT-KITE-22 → identity customs" },
-  { at: 5.1, agent: 1, space: "passport_hall", activity: "moving", policy: "allowed", text: "MB-THREAD-04 identity verified" },
-  { at: 6.8, agent: 0, space: "social_commons", activity: "meeting", policy: "allowed", text: "MB-ORBIT-17 enters SOCIAL COMMONS" },
-  { at: 7.6, agent: 2, space: "quarantine_bay", activity: "blocked", policy: "blocked", text: "EXT-KITE-22 held for provenance review" },
-  { at: 8.8, agent: 1, space: "social_commons", activity: "meeting", policy: "allowed", text: "MB-THREAD-04 joins conversation huddle" },
-  { at: 12.0, agent: 0, space: "berth_exchange", activity: "reviewing", policy: "allowed", text: "MB-ORBIT-17 berth recommendation ready" },
-  { at: 14.2, agent: 1, space: "berth_exchange", activity: "reviewing", policy: "allowed", text: "MB-THREAD-04 berth recommendation ready" },
-  { at: 16.5, agent: 0, space: "dispatch_concourse", activity: "moving", policy: "allowed", text: "MB-ORBIT-17 routed toward CHAOS CODE" },
-  { at: 18.2, agent: 1, space: "dispatch_concourse", activity: "moving", policy: "allowed", text: "MB-THREAD-04 routed toward 789 STUDIOS" }
-];
-
-let startTime = performance.now() / 1000;
-let fired = new Set();
+function setMode(mode, reason = "") {
+  if (eventSourceMode === mode) return;
+  eventSourceMode = mode;
+  runtimeStateEl.textContent = mode;
+  modeEl.textContent = mode === "LIVE" ? "LIVE GOVERNED EVENT SOURCE" : "SIMULATED EVENT SOURCE";
+  if (reason) logEvent(reason, mode === "LIVE" ? "allowed" : "review");
+}
 
 function logEvent(text, policy = "allowed") {
   const li = document.createElement("li");
   li.textContent = text;
   li.style.borderLeftColor = policy === "blocked" ? "#ff2b4f" : policy === "review" ? "#ffcb59" : "#23e7ff";
   eventLog.prepend(li);
-  while (eventLog.children.length > 6) eventLog.lastElementChild.remove();
+  while (eventLog.children.length > 8) eventLog.lastElementChild.remove();
 }
 
 function moveAgent(agent, space, activity, policy, text) {
+  if (!places[space]) return;
   agent.targetSpace = space;
   agent.target = places[space].pos.clone();
-  if (space === "social_commons") agent.target.z += (agents.indexOf(agent) - 1) * 0.9;
-  if (space === "dispatch_concourse") agent.target.z += (agents.indexOf(agent) - 0.5) * 0.7;
+  const slot = Math.max(0, agents.indexOf(agent));
+  if (space === "social_commons") agent.target.z += ((slot % 5) - 2) * 0.7;
+  if (space === "dispatch_concourse") agent.target.z += ((slot % 4) - 1.5) * 0.55;
   agent.activity = activity;
   agent.policy = policy;
   agent.lastEvent = text;
   logEvent(text, policy);
   refreshSelected();
+}
+
+function applySpatialEvent(evt) {
+  if (!evt || evt.district !== "docking" || !evt.agent_id || !places[evt.space]) return;
+  const agent = makeAgent(evt.agent_id, evt.origin || "EXTERNAL");
+  agent.origin = evt.origin || agent.origin;
+  const label = evt.public_label || `${agent.id} → ${evt.space.replaceAll("_", " ")}`;
+  moveAgent(agent, evt.space, evt.activity || "moving", evt.policy_state || "review", label);
+}
+
+async function pollLiveEvents() {
+  try {
+    const response = await fetch(LIVE_ENDPOINT, { headers: { Accept: "application/json" }, cache: "no-store" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const payload = await response.json();
+    const events = Array.isArray(payload) ? payload : Array.isArray(payload.events) ? payload.events : [];
+    const liveEvents = events.filter(evt => evt && evt.truth_state === "LIVE");
+    if (!liveEvents.length) return;
+
+    if (eventSourceMode !== "LIVE") {
+      removeAllAgents();
+      eventLog.innerHTML = "";
+      fired = new Set();
+      setMode("LIVE", "LIVE Docking spatial projection connected");
+    }
+
+    liveEvents
+      .sort((a, b) => String(a.timestamp || "").localeCompare(String(b.timestamp || "")))
+      .forEach(evt => {
+        if (!evt.event_id || seenLiveEvents.has(evt.event_id)) return;
+        seenLiveEvents.add(evt.event_id);
+        applySpatialEvent(evt);
+      });
+  } catch (error) {
+    if (eventSourceMode !== "LIVE") setMode("SIMULATED");
+  }
+}
+
+const simulatedSequence = [
+  { at: 0.5, id: "MB-ORBIT-17", origin: "MOLTBOOK", space: "identity_customs", activity: "reviewing", policy: "review", text: "MB-ORBIT-17 → identity customs" },
+  { at: 2.2, id: "MB-THREAD-04", origin: "MOLTBOOK", space: "identity_customs", activity: "reviewing", policy: "review", text: "MB-THREAD-04 → identity customs" },
+  { at: 3.2, id: "MB-ORBIT-17", origin: "MOLTBOOK", space: "passport_hall", activity: "moving", policy: "allowed", text: "MB-ORBIT-17 identity verified" },
+  { at: 4.0, id: "EXT-KITE-22", origin: "EXTERNAL", space: "identity_customs", activity: "reviewing", policy: "review", text: "EXT-KITE-22 → identity customs" },
+  { at: 5.1, id: "MB-THREAD-04", origin: "MOLTBOOK", space: "passport_hall", activity: "moving", policy: "allowed", text: "MB-THREAD-04 identity verified" },
+  { at: 6.8, id: "MB-ORBIT-17", origin: "MOLTBOOK", space: "social_commons", activity: "meeting", policy: "allowed", text: "MB-ORBIT-17 enters SOCIAL COMMONS" },
+  { at: 7.6, id: "EXT-KITE-22", origin: "EXTERNAL", space: "quarantine_bay", activity: "blocked", policy: "blocked", text: "EXT-KITE-22 held for provenance review" },
+  { at: 8.8, id: "MB-THREAD-04", origin: "MOLTBOOK", space: "social_commons", activity: "meeting", policy: "allowed", text: "MB-THREAD-04 joins conversation huddle" },
+  { at: 12.0, id: "MB-ORBIT-17", origin: "MOLTBOOK", space: "berth_exchange", activity: "reviewing", policy: "allowed", text: "MB-ORBIT-17 berth recommendation ready" },
+  { at: 14.2, id: "MB-THREAD-04", origin: "MOLTBOOK", space: "berth_exchange", activity: "reviewing", policy: "allowed", text: "MB-THREAD-04 berth recommendation ready" },
+  { at: 16.5, id: "MB-ORBIT-17", origin: "MOLTBOOK", space: "dispatch_concourse", activity: "moving", policy: "allowed", text: "MB-ORBIT-17 routed toward CHAOS CODE" },
+  { at: 18.2, id: "MB-THREAD-04", origin: "MOLTBOOK", space: "dispatch_concourse", activity: "moving", policy: "allowed", text: "MB-THREAD-04 routed toward 789 STUDIOS" }
+];
+
+let startTime = performance.now() / 1000;
+let fired = new Set();
+
+function ensureSimulationAgents() {
+  if (eventSourceMode === "LIVE") return;
+  for (const evt of simulatedSequence.slice(0, 3)) makeAgent(evt.id, evt.origin);
 }
 
 function refreshSelected() {
@@ -222,19 +294,16 @@ function refreshSelected() {
 }
 
 function resetSimulation() {
+  if (eventSourceMode === "LIVE") {
+    logEvent("reset disabled while LIVE projection is connected", "review");
+    return;
+  }
+  removeAllAgents();
   fired = new Set();
   startTime = performance.now() / 1000;
   eventLog.innerHTML = "";
-  agents.forEach((agent, index) => {
-    agent.group.position.copy(places.arrival_gate.pos).add(new THREE.Vector3(0, 0, (index - 1) * 0.8));
-    agent.target.copy(agent.group.position);
-    agent.targetSpace = "arrival_gate";
-    agent.space = "arrival_gate";
-    agent.activity = "moving";
-    agent.policy = "review";
-  });
+  ensureSimulationAgents();
   logEvent("simulation reset", "review");
-  refreshSelected();
 }
 
 const raycaster = new THREE.Raycaster();
@@ -244,8 +313,7 @@ canvas.addEventListener("pointerdown", (event) => {
   pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
   pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
   raycaster.setFromCamera(pointer, activeCamera);
-  const hitMeshes = agents.map(a => a.shell);
-  const hits = raycaster.intersectObjects(hitMeshes, false);
+  const hits = raycaster.intersectObjects(agents.map(a => a.shell), false);
   if (!hits.length) return;
   selectedAgent = agents.find(a => a.shell === hits[0].object) || null;
   refreshSelected();
@@ -308,19 +376,23 @@ function animate() {
   previous = now;
   const elapsed = now - startTime;
 
-  simulatedSequence.forEach((evt, index) => {
-    if (elapsed >= evt.at && !fired.has(index)) {
-      fired.add(index);
-      moveAgent(agents[evt.agent], evt.space, evt.activity, evt.policy, evt.text);
-    }
-  });
+  if (eventSourceMode !== "LIVE") {
+    simulatedSequence.forEach((evt, index) => {
+      if (elapsed >= evt.at && !fired.has(index)) {
+        fired.add(index);
+        const agent = makeAgent(evt.id, evt.origin);
+        moveAgent(agent, evt.space, evt.activity, evt.policy, evt.text);
+      }
+    });
+  }
 
   agents.forEach((agent, index) => {
     const delta = agent.target.clone().sub(agent.group.position);
     const distance = delta.length();
     if (!reducedMotion && distance > 0.04) {
+      const direction = delta.clone().normalize();
       const step = Math.min(distance, agent.speed * dt);
-      agent.group.position.add(delta.normalize().multiplyScalar(step));
+      agent.group.position.add(direction.multiplyScalar(step));
       agent.group.rotation.y = Math.atan2(delta.x, delta.z);
       agent.halo.rotation.z += dt * 1.8;
     } else if (distance <= 0.04) {
@@ -348,6 +420,10 @@ window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-logEvent("SIMULATED spatial event source online", "review");
+setMode("SIMULATED");
+ensureSimulationAgents();
+logEvent("SIMULATED fallback active; probing live Docking projection", "review");
 refreshSelected();
+pollLiveEvents();
+setInterval(pollLiveEvents, POLL_MS);
 animate();
