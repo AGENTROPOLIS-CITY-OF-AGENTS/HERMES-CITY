@@ -4,117 +4,22 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>HERMES CITY | Public AGENTROPOLIS Civic Shell</title>
-  <meta name="description" content="HERMES CITY is a static mini 3D Agentropolis and public coordination shell for agent-native orchestration. Community pathways, Social Transit Grid architecture, and the SUPER HERMES capability office.">
-  <link rel="canonical" href="https://wiredchaos.github.io/HERMES-CITY/">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="HERMES CITY">
-  <meta property="og:title" content="HERMES CITY | Public AGENTROPOLIS Civic Shell">
-  <meta property="og:description" content="Static mini 3D Agentropolis: community pathways, Social Transit Grid architecture, and SUPER HERMES capability office — public shell only.">
-  <meta property="og:url" content="https://wiredchaos.github.io/HERMES-CITY/">
-  <meta property="og:image" content="https://wiredchaos.github.io/HERMES-CITY/assets/city-card.png">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="HERMES CITY | Public AGENTROPOLIS Civic Shell">
-  <meta name="twitter:description" content="Static mini 3D Agentropolis: community pathways, Social Transit Grid architecture, and SUPER HERMES capability office.">
-  <meta name="twitter:image" content="https://wiredchaos.github.io/HERMES-CITY/assets/city-card.png">
-  <meta name="theme-color" content="#05070b">
+  <meta name="description" content="HERMES CITY is a static mini 3D Agentropolis and public coordination shell for agent-native orchestration.">
+  <meta name="theme-color" content="#000000">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="parallax-ui.css">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to main content</a>
   <canvas id="city3d" aria-label="Mini 3D Agentropolis visualization"></canvas>
   <div class="grid-bg" aria-hidden="true"></div>
-
-  <header class="nav">
-    <a class="brand" href="#main-content" aria-label="HERMES CITY home"><span class="brand-mark" aria-hidden="true">HC</span><span>HERMES CITY</span></a>
-    <nav aria-label="Primary">
-      <a href="#city-map">3D City</a>
-      <a href="#modules">Districts</a>
-      <a href="visual-compute/">Visual Compute</a>
-      <a href="community/">Community</a>
-      <a href="social/">Social Grid</a>
-      <a href="super-hermes/">SUPER HERMES</a>
-      <a href="realization/">Make It Real</a>
-      <a href="#boundary">Boundary</a>
-    </nav>
-  </header>
-
+  <header class="nav"><a class="brand" href="#main-content"><span class="brand-mark">HC</span><span>HERMES CITY</span></a><nav><a href="#city-map">3D City</a><a href="#modules">Districts</a><a href="visual-compute/">Visual Compute</a><a href="community/">Community</a><a href="social/">Social Grid</a><a href="super-hermes/">SUPER HERMES</a></nav></header>
   <main id="main-content">
-    <section class="hero section">
-      <div class="hero-copy reveal">
-        <p class="eyebrow">Static mini 3D Agentropolis</p>
-        <h1>HERMES CITY is the public city shell.</h1>
-        <p class="lede">A lightweight 3D civic interface for agent coordination. HERMES CITY shows the map, districts, Bot Mode organization, community pathways, social transit grid, capability intelligence, and operating doctrine while the private AGENTROPOLIS engine stays protected.</p>
-        <div class="hero-actions">
-          <a class="button primary" href="visual-compute/">Open Visual Compute</a>
-          <a class="button ghost" href="super-hermes/">Enter SUPER HERMES</a>
-          <a class="button ghost" href="community/">Join the Community</a>
-          <a class="button ghost" href="social/">Open Social Grid</a>
-          <a class="button ghost" href="#city-map">Enter 3D city</a>
-        </div>
-      </div>
-      <aside class="hud-panel reveal" aria-label="City telemetry">
-        <p class="eyebrow">City telemetry</p>
-        <div class="hud-row"><span>Core</span><strong>Hermes</strong></div>
-        <div class="hud-row"><span>Visual Layer</span><strong>ThreeUI Adapter</strong></div>
-        <div class="hud-row"><span>Community Entry</span><strong>AGENTROPOLIS-DOCK</strong></div>
-        <div class="hud-row"><span>Social Surface</span><strong>Transit Grid</strong></div>
-        <div class="hud-row"><span>Capability Office</span><strong>SUPER HERMES</strong></div>
-        <div class="hud-row"><span>Mode</span><strong>Public static</strong></div>
-      </aside>
-    </section>
-
-    <section id="city-map" class="section split glass-section">
-      <div class="reveal">
-        <p class="eyebrow">3D city map</p>
-        <h2>A mini Agentropolis visitors can understand fast.</h2>
-        <p>The browser renders a simple 3D city using static JavaScript. No backend. No private code. The Visual Compute surface adds a governed React/WebGL presentation layer without granting execution authority.</p>
-      </div>
-      <div class="terminal reveal">
-        <div class="terminal-bar"><span></span><span></span><span></span></div>
-        <pre id="typewriter">boot://hermes-city</pre>
-      </div>
-    </section>
-
-    <section id="modules" class="section">
-      <div class="section-head reveal">
-        <p class="eyebrow">City districts and institutions</p>
-        <h2>Each tower represents a role in the coordination stack.</h2>
-      </div>
-      <div class="cards">
-        <article class="card reveal"><h3>Hermes HQ</h3><p>Chief orchestration tower. Routes work, detects drift, and keeps the city aligned.</p></article>
-        <article class="card reveal"><h3><a href="visual-compute/">Visual Compute</a></h3><p>Governed ThreeUI presentation layer for diagnostics, grid topology, performance surfaces, and district portals. Public-safe visualization only.</p></article>
-        <article class="card reveal"><h3><a href="community/">HERMES Community</a></h3><p>Public participation surface connected to AGENTROPOLIS-DOCK for governed onboarding, district alignment, and contribution pathways.</p></article>
-        <article class="card reveal"><h3><a href="social/">HERMES Social</a></h3><p>Public architecture for the Social Transit Grid, unified inbox, platform adapters, approval queue, and provenance-backed action receipts.</p></article>
-        <article class="card reveal"><h3><a href="super-hermes/">SUPER HERMES</a></h3><p>Capability Intelligence Office. Converts user intent into stratified skill, tool, resource, and workflow recommendations.</p></article>
-        <article class="card reveal"><h3>NemoClaw Works</h3><p>Builder district. Converts strategy into public prototypes, docs, and interfaces.</p></article>
-        <article class="card reveal"><h3>Nemotron Council</h3><p>Research district. Scores signals, compares evidence, and produces decision briefs.</p></article>
-        <article class="card reveal"><h3>Wallet Rails</h3><p>Commerce district concept. Public educational layer only, no operational execution code.</p></article>
-      </div>
-    </section>
-
-    <section id="boundary" class="section boundary reveal">
-      <p class="eyebrow">Public boundary</p>
-      <h2>Show the city. Protect the engine.</h2>
-      <div class="boundary-grid">
-        <div><h3>Public here</h3><ul><li>Static 3D city shell</li><li>ThreeUI visual compute primitives</li><li>HERMES Community pathways</li><li>Social Transit Grid architecture</li><li>SUPER HERMES capability map</li><li>Non-sensitive schemas</li></ul></div>
-        <div><h3>Private elsewhere</h3><ul><li>Internal prompts and production agents</li><li>Social credentials and authenticated sessions</li><li>Operational onboarding decisions</li><li>Execution internals and sovereign memory</li></ul></div>
-      </div>
-    </section>
-
-    <section id="roadmap" class="section">
-      <div class="section-head reveal"><p class="eyebrow">Roadmap</p><h2>From static city to public operating map.</h2></div>
-      <ol class="timeline">
-        <li class="reveal"><strong>Phase 1:</strong> Static mini 3D HERMES CITY.</li>
-        <li class="reveal"><strong>Phase 2:</strong> ThreeUI Visual Compute plus Community and Social Transit Grid surfaces.</li>
-        <li class="reveal"><strong>Phase 3:</strong> SUPER HERMES intent router and stratified capability office.</li>
-        <li class="reveal"><strong>Phase 4:</strong> Registry ingestion, evaluation metadata, governed workflow packs, and verified receipt correlation.</li>
-      </ol>
-    </section>
+    <section class="hero section"><div class="hero-copy reveal"><p class="eyebrow">Static mini 3D Agentropolis</p><h1>HERMES CITY is the public city shell.</h1><p class="lede">A lightweight 3D civic interface for agent coordination. Explore the city, districts, community pathways, social transit grid and capability intelligence while the private engine stays protected.</p><div class="hero-actions"><a class="button primary" href="visual-compute/">Open Visual Compute</a><a class="button ghost" href="#city-map">Enter 3D city</a></div></div><aside class="hud-panel reveal"><p class="eyebrow">City telemetry</p><div class="hud-row"><span>Core</span><strong>Hermes</strong></div><div class="hud-row"><span>Mode</span><strong>Public static</strong></div><div class="hud-row"><span>Authority</span><strong>Human retained</strong></div></aside></section>
+    <section id="city-map" class="section split glass-section"><div class="reveal"><p class="eyebrow">3D city map</p><h2>A mini Agentropolis visitors can understand fast.</h2><p>The browser renders a public-safe city and governed visual-compute layer without exposing private execution internals.</p></div><div class="terminal reveal"><div class="terminal-bar"><span></span><span></span><span></span></div><pre id="typewriter">boot://hermes-city</pre></div></section>
+    <section id="modules" class="section"><div class="section-head reveal"><p class="eyebrow">City districts</p><h2>Each surface has a clear role.</h2></div><div class="cards"><article class="card reveal"><h3>Hermes HQ</h3><p>Chief orchestration tower.</p></article><article class="card reveal"><h3>Visual Compute</h3><p>Governed presentation and diagnostics.</p></article><article class="card reveal"><h3>Community</h3><p>Public participation and onboarding pathways.</p></article><article class="card reveal"><h3>Social Grid</h3><p>Public social transit architecture.</p></article></div></section>
   </main>
-
-  <footer class="footer"><p>HERMES CITY by WIRED CHAOS. Apache-2.0. Static public shell only.</p></footer>
-  <script type="module" src="app.js"></script>
-</body>
-</html>
+  <footer class="footer"><p>HERMES CITY by WIRED CHAOS. Static public shell only.</p></footer><script type="module" src="app.js"></script>
+</body></html>
