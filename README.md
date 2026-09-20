@@ -103,7 +103,7 @@ The city model also recognizes municipal functions: civic administration, public
 
 Machine-readable public topology: `config/hermes-city-org-topology.json`.
 
-Detailed doctrine: `docs/HERMES_BOTMODE_CITY_MATRIX.md`.
+Detailed doctrine: `docs/HERMES_BOTMODE_CITY_MATRIX.md`.\n\n### People + Organization / HR profile\n\nHERMES now has a dedicated public-safe **People + Organization** profile that coordinates both human HR and agentic HR under the workforce-domain ownership of `AGENTROPOLIS-HRM54`. NEURO Workforce Steward provides the interaction personality; HERMES provides operational routing and Mission Pods.\n\nSee `docs/HERMES_PEOPLE_ORG_HR_PROFILE.md` and `config/hermes-people-org-hr-profile.json`.
 
 ---
 
