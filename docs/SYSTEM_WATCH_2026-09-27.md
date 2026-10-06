@@ -1,29 +1,47 @@
-# Hermes System Watch — 2026-09-27
+# Hermes System Watch — updated 2026-10-06
 
-## Baseline
-Candidate tag remains Hermes v0.21.5 / v2026.9.24 / f97608f. Keep it in TEST, not fleet-wide production.
+## Public-safe baseline
+Upstream: NousResearch/hermes-agent
+Stable release: v2026.9.24
+Package version: v0.21.5
+Commit: f97608f178d
+Status: TEST only.
 
-## Current blockers
-- inbound email sender authentication required post-tag hardening against display-name and Authentication-Results smuggling
-- backup/restore must refuse corrupt snapshots and prove restore externally
-- state/transcript duplication and source-completion disk runaway require quotas/alerts
-- cron failure text must redact host paths and unknown secret-like values
-- plugin boot must prove the capability actually loaded
-- long Slack delivery must fall back safely
-- same-name remote/local profile routing must preserve connection/profile ownership
-- post-update Kanban workers must prove their interpreter/runtime can import Hermes
+The stable release remains the reproducible candidate. Post-release hardening on upstream main is tracked as canary evidence and must not be treated as a fleet baseline until it appears in a tagged release.
+
+## Promotion blockers
+Every blocker below must be closed and represented by evidence before promotion:
+- inbound identity/authentication hardening
+- backup/restore integrity and externally verified recovery
+- state/transcript growth controls and disk safety
+- failure-message redaction
+- proof that installed plugins/capabilities actually loaded
+- safe fallback for long Slack delivery
+- remote/local profile ownership and route-freshness validation
+- post-update worker/runtime generation compatibility
+- managed-root confinement across preview/review surfaces
+- live revocation checks for interactive component authority
+
+Security-sensitive exploit mechanics and private routing formulas belong in the private advisory/implementation channel, not this public watch.
 
 ## Required canary evidence
-- email auth adversarial corpus
-- corrupt snapshot refusal
-- state growth/dedup checks
-- disk quota enforcement
-- redacted cron failures
-- actual post-boot capability inventory
+- public-safe ingress authentication adversarial suite
+- corrupt snapshot refusal and verified restore
+- state growth/dedup and disk quota checks
+- redacted cron/runtime failures
+- post-boot capability inventory
 - update -> worker-spawn validation
-- remote route identity = connection_id + profile_id + route_epoch
+- long-message delivery fallback
+- remote/local ownership and route-freshness validation
+- managed-root confinement regression
+- live authorization revocation without restart
 
 ## Authority
-Display identity is not authenticated identity. Installed plugin is not loaded capability. Runtime success text is not deployment proof.
+Presentation identity is not authenticated identity.
+Installed capability is not loaded capability.
+Loaded capability is not authorized effect.
+PID is not process identity.
+Runtime success text is not deployment proof.
 
-Do not promote until the security and persistence/update blockers land in a tagged release and pass AGENTROPOLIS conformance.
+## Promotion rule
+Do not promote Hermes fleet-wide until every listed blocker is closed in a tagged upstream release and the corresponding AGENTROPOLIS canary evidence passes.
