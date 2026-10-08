@@ -13,10 +13,15 @@
   <meta property="og:description" content="Globe-first navigation, governed runtime state, receipts, capability boundaries, and public-safe Hermes surfaces.">
   <meta property="og:url" content="https://agentropolis-city-of-agents.github.io/HERMES-CITY/">
   <meta property="og:image" content="https://agentropolis-city-of-agents.github.io/HERMES-CITY/assets/city-card.png">
+  <meta property="og:image:alt" content="HERMES CITY: AGENTROPOLIS Intelligence Grid">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="HERMES CITY | AGENTROPOLIS Intelligence Grid">
+  <meta name="twitter:description" content="Globe-first navigation, governed runtime state, receipts, capability boundaries, and public-safe Hermes surfaces.">
+  <meta name="twitter:image" content="https://agentropolis-city-of-agents.github.io/HERMES-CITY/assets/city-card.png">
   <meta name="theme-color" content="#05070A">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="stylesheet" href="styles.css">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-src 'none'; worker-src 'none'">
 </head>
 <body>
   <a class="skip-link" href="#district">Skip to HERMES CITY</a>
@@ -35,19 +40,32 @@
       <a href="#receipts">Receipts</a>
       <a href="visual-compute/">Visual Compute</a>
     </nav>
-    <div class="tier-control" aria-label="Adaptive experience">
-      <button data-tier="full">FULL</button>
-      <button data-tier="adaptive" class="active">ADAPTIVE</button>
-      <button data-tier="lite">LITE</button>
-      <button data-tier="minimum">MIN</button>
+    <div class="tier-control" role="group" aria-label="Experience tier">
+      <button type="button" data-tier="full" aria-pressed="false">FULL</button>
+      <button type="button" data-tier="adaptive" class="active" aria-pressed="true">ADAPTIVE</button>
+      <button type="button" data-tier="lite" aria-pressed="false">LITE</button>
+      <button type="button" data-tier="minimum" aria-pressed="false">MIN</button>
     </div>
+    <p id="tier-status" class="sr-only" role="status" aria-live="polite"></p>
   </header>
 
   <main>
     <section id="globe" class="globe-stage" aria-labelledby="globe-title">
-      <canvas id="globe3d" aria-label="Interactive AGENTROPOLIS globe with HERMES CITY highlighted"></canvas>
+      <canvas id="globe3d" role="img" aria-label="AGENTROPOLIS globe with HERMES CITY highlighted"></canvas>
+      <div id="globe-fallback" class="globe-fallback" hidden>
+        <p class="kicker">STATIC CITY MAP</p>
+        <p id="globe-fallback-reason">The 3D globe is not running. The district map remains available.</p>
+        <ul aria-label="AGENTROPOLIS districts on the globe">
+          <li class="here">HERMES CITY <span>orchestration district · you are here</span></li>
+          <li>CREATOR CORE</li>
+          <li>AGENT MCP</li>
+          <li>WORLDQ</li>
+          <li>AQUADUCT</li>
+          <li>GAMING</li>
+        </ul>
+      </div>
       <div class="globe-copy">
-        <p class="kicker">GLOBE → DISTRICT → APPLICATION → AGENT / ACTION</p>
+        <p class="kicker">GLOBE → HERMES CITY → DISTRICT / SUB-DISTRICT → APPLICATION → AGENT / ACTION</p>
         <h1 id="globe-title">The city becomes the interface.</h1>
         <p>HERMES CITY is the orchestration district inside the AGENTROPOLIS Intelligence Grid. Navigation begins at the globe. Authority does not.</p>
         <div class="hero-actions">

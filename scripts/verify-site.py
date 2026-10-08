@@ -2,7 +2,8 @@
 """HERMES-CITY static site verification gate (B1 production hardening).
 
 All-local checks (no network unless --live):
-  1. Required routes exist (index, community/, social/, super-hermes/, 404.html, robots.txt, sitemap.xml).
+  1. Required routes exist (index, community/, social/, super-hermes/, realization/, botmode/,
+     404.html, robots.txt, sitemap.xml).
   2. HTML structure: parse every public page; every local href/src resolves on disk relative
      to the page; same-page anchors resolve to existing element ids; unique ids per page.
   3. HTML validation (structural): lang, viewport, title, meta description on root, img alt,
@@ -12,6 +13,10 @@ All-local checks (no network unless --live):
   5. Canonical metadata on root: canonical URL, Open Graph, twitter card, theme-color, favicon.
   6. Color contrast: WCAG 2.1 contrast for :root text colors against bg/panel composites.
   7. robots.txt + sitemap.xml well-formed; 404.html self-contained + noindex.
+  8. Canonical host consistency: canonical, og:url, og/twitter image, robots Sitemap and sitemap
+     <loc> entries share one origin.
+  9. Content-Security-Policy meta on root: script-src without inline/eval/wildcard, object-src 'none',
+     base-uri present.
 Optional --live: HEAD-check external http(s) URLs.
 
 Exit code 0 = pass, 1 = fail.
@@ -30,6 +35,8 @@ PAGES = [
     "community/index.html",
     "social/index.html",
     "super-hermes/index.html",
+    "realization/index.html",
+    "botmode/index.html",
 ]
 REQUIRED_ROUTES = PAGES + ["404.html", "robots.txt", "sitemap.xml"]
 
@@ -83,6 +90,12 @@ class PageParser(html.parser.HTMLParser):
             self.stack.append(tag)
         if "id" in d:
             self.ids.append(d["id"])
+        # Collect every local reference so check_links actually runs
+        # (previously self.hrefs was never populated and the link gate was a no-op).
+        if tag in ("a", "link") and d.get("href"):
+            self.hrefs.append(d["href"])
+        if tag in ("script", "img", "source", "iframe") and d.get("src"):
+            self.hrefs.append(d["src"])
         if tag == "a" and "href" in d:
             classes = d.get("class", "").split()
             self._pending_a = {
@@ -296,6 +309,22 @@ def parse_color(value, vars_map):
     return (0, 0, 0)
 
 
+def split_alpha(color):
+    """Normalise parse_color output to ((r, g, b), alpha).
+
+    parse_color returns an RGB triple for hex values and ((r, g, b), alpha)
+    for rgb()/rgba(); both shapes are valid CSS and must be accepted.
+    """
+    if len(color) == 2 and isinstance(color[0], tuple):
+        return color[0], float(color[1])
+    return tuple(color), 1.0
+
+
+def as_opaque(color, under):
+    rgb, alpha = split_alpha(color)
+    return blend(under, rgb, alpha)
+
+
 def blend(bg, fg, alpha):
     return tuple(round(bg[i] * (1 - alpha) + fg[i] * alpha) for i in range(3))
 
@@ -315,18 +344,17 @@ def contrast(a, b):
 
 def check_contrast():
     vars_map, css_text = parse_css_vars(os.path.join(ROOT, "styles.css"))
-    bg = parse_color(vars_map.get("--bg", "#05070b"), vars_map)
-    panel = parse_color(vars_map.get("--panel", "rgba(12,18,28,0.78)"), vars_map)
-    panel_rgb, panel_alpha = panel
+    # Design System 0.2.0 names the page background --obsidian; older themes used --bg.
+    bg = as_opaque(parse_color(vars_map.get("--obsidian", vars_map.get("--bg", "#05070b")), vars_map), (0, 0, 0))
+    # --panel may be an opaque hex (RGB triple) or an rgba() composite ((rgb), alpha).
+    panel_rgb, panel_alpha = split_alpha(parse_color(vars_map.get("--panel", "rgba(12,18,28,0.78)"), vars_map))
     panel_composite = blend(bg, panel_rgb, panel_alpha)
     text_colors = ["--text", "--muted", "--cyan", "--red", "--lime", "--purple"]
     text_colors = [c for c in text_colors if c in vars_map]
     ok = True
     for var in text_colors:
-        fg = parse_color(vars_map[var], vars_map)
-        if isinstance(fg, tuple) and len(fg) == 2:
-            fg_rgb, fg_alpha = fg
-            fg = blend(bg, fg_rgb, fg_alpha)
+        fg_rgb, fg_alpha = split_alpha(parse_color(vars_map[var], vars_map))
+        fg = blend(bg, fg_rgb, fg_alpha)
         on_bg = contrast(bg, fg)
         on_panel = contrast(panel_composite, fg)
         if on_bg < 4.5 or on_panel < 4.5:
@@ -363,6 +391,58 @@ def check_robots_sitemap():
         fail("sitemap.xml", "sitemap", str(exc))
 
 
+def check_canonical_host_consistency():
+    """canonical, og:url, robots Sitemap and sitemap <loc> must share one origin."""
+    with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as fh:
+        index = fh.read()
+    canon = re.search(r'<link rel="canonical" href="([^"]+)"', index)
+    og_url = re.search(r'<meta property="og:url" content="([^"]+)"', index)
+    if not canon:
+        fail("index.html", "canonical-host", "no canonical link")
+        return
+    base = canon.group(1)
+    if not base.endswith("/"):
+        base += "/"
+    if og_url and og_url.group(1) != canon.group(1):
+        fail("index.html", "canonical-host", "og:url %s != canonical %s" % (og_url.group(1), canon.group(1)))
+    for m in re.finditer(r'<meta (?:property|name)="(?:og|twitter):image" content="([^"]+)"', index):
+        if not m.group(1).startswith(base):
+            fail("index.html", "canonical-host", "social image %s not under %s" % (m.group(1), base))
+    with open(os.path.join(ROOT, "robots.txt"), encoding="utf-8") as fh:
+        robots = fh.read()
+    for line in robots.splitlines():
+        if line.lower().startswith("sitemap:") and not line.split(":", 1)[1].strip().startswith(base):
+            fail("robots.txt", "canonical-host", "%s not under %s" % (line.strip(), base))
+    try:
+        tree = ET.parse(os.path.join(ROOT, "sitemap.xml"))
+        for loc in tree.findall(".//{http://www.sitemaps.org/schemas/sitemap/0.9}loc"):
+            if not (loc.text or "").strip().startswith(base):
+                fail("sitemap.xml", "canonical-host", "%s not under %s" % (loc.text, base))
+    except ET.ParseError:
+        pass  # reported by check_robots_sitemap
+    if not any(c[1] == "canonical-host" for c in FAILS):
+        print("[PASS] canonical-host: canonical, og/twitter, robots and sitemap share %s" % base)
+
+
+def check_csp():
+    with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as fh:
+        index = fh.read()
+    m = re.search(r'http-equiv="Content-Security-Policy" content="([^"]+)"', index)
+    if not m:
+        fail("index.html", "csp", "missing Content-Security-Policy meta")
+        return
+    policy = {d.strip().split()[0]: d.strip().split()[1:] for d in m.group(1).split(";") if d.strip()}
+    script = policy.get("script-src", policy.get("default-src", []))
+    if "'unsafe-inline'" in script or "'unsafe-eval'" in script or "*" in script:
+        fail("index.html", "csp", "script-src allows inline/eval/wildcard: %s" % " ".join(script))
+    if policy.get("object-src") != ["'none'"]:
+        fail("index.html", "csp", "object-src must be 'none'")
+    if "base-uri" not in policy:
+        fail("index.html", "csp", "missing base-uri")
+    if not any(c[1] == "csp" for c in FAILS):
+        print("[PASS] csp: script-src %s; object-src 'none'; base-uri set" % " ".join(script))
+
+
 def check_404():
     path = os.path.join(ROOT, "404.html")
     text = open(path, encoding="utf-8").read()
@@ -384,6 +464,8 @@ def main():
         check_a11y(page, parser, is_root=(page == "index.html"))
     check_contrast()
     check_robots_sitemap()
+    check_canonical_host_consistency()
+    check_csp()
     check_404()
 
     print("\n=== SUMMARY ===")
