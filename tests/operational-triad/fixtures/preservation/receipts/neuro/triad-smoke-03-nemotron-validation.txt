@@ -1,0 +1,6 @@
+SYNTHETIC REGRESSION FIXTURE - not an operational receipt. Do not edit; hashes are pinned in tests/operational-triad/run_triad_tests.py.
+receipt_id: triad-smoke-03
+phase: NEMOTRON validation
+agent: nemotron-validator
+checks: file_exists content_exact byte_count no_unexpected_files sha256_match
+verdict: PASS

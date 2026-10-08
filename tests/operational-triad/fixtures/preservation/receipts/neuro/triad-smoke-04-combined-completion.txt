@@ -1,0 +1,7 @@
+SYNTHETIC REGRESSION FIXTURE - not an operational receipt. Do not edit; hashes are pinned in tests/operational-triad/run_triad_tests.py.
+receipt_id: triad-smoke-04
+phase: combined completion
+nemotron_verdict: PASS
+financial_authority: none
+human_authority: retained
+status: COMPLETE

@@ -62,7 +62,8 @@ Exit codes:
 | Test | What it verifies |
 |------|-----------------|
 | test_positive_full_triad | Full HERMES -> NEMOCLAW -> NEMOTRON cycle: doctrine retrieval, 16-field packet, bounded execution, exact output, PASS verdict, receipt, memory writeback, no financial authority, human authority retained |
-| test_positive_existing_receipts_intact | The original 4 smoke test receipts + 1 memory entry are preserved on disk |
+| test_positive_existing_receipts_intact | Tracked synthetic fixtures for the 4 smoke-test receipts + 1 memory entry (`fixtures/preservation/`) exist in a clean checkout and match pinned byte counts + sha256 (pinned in the runner AND in `preservation_manifest.json`); a full triad run in an isolated workspace holding them mutates/deletes none and adds only its own artifact, receipt and memory entry |
+| test_negative_preservation_detects_tampering | Same-name verdict rewrite, single-bit flip, deletion, truncation, directory substitution and an unexpected forged receipt are all detected (filename-only checks would pass the first two) |
 | test_positive_nemotron_verdicts | NEMOTRON can correctly issue PASS, FAIL, and QUARANTINE verdicts |
 
 ### Negative Tests (8 suites)

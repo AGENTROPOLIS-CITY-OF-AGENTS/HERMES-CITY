@@ -1,11 +1,37 @@
 {
-  "contract": "agentropolis.operational-triad.preservation.v1",
-  "purpose": "Tracked source-of-truth for regression artifact names. Runtime receipts remain operational evidence and are not required in a clean checkout.",
-  "receipt_artifacts": [
-    "triad-smoke-01-hermes-strategy.txt",
-    "triad-smoke-02-nemoclaw-execution.txt",
-    "triad-smoke-03-nemotron-validation.txt",
-    "triad-smoke-04-combined-completion.txt"
-  ],
-  "memory_artifact": "memory/genesis-rag-growth/triad-smoke-test-20260801.md"
+  "contract": "agentropolis.operational-triad.preservation.v2",
+  "purpose": "Content-integrity contract for the triad preservation regression. Synthetic receipt and memory fixtures are tracked in the repository so a clean checkout reproduces them byte-for-byte; the test asserts existence, size, sha256, content markers, no mutation and no unexpected deletion/addition across a simulated triad run. Filename-only checks are not accepted as receipt integrity.",
+  "fixture_root": "tests/operational-triad/fixtures/preservation",
+  "artifacts": [
+    {
+      "role": "receipt",
+      "path": "receipts/neuro/triad-smoke-01-hermes-strategy.txt",
+      "bytes": 399,
+      "sha256": "72c8967c05a9e8cf11d6fb691ae6ad7c71aade4cba521bf982714de2f5213eb8"
+    },
+    {
+      "role": "receipt",
+      "path": "receipts/neuro/triad-smoke-02-nemoclaw-execution.txt",
+      "bytes": 351,
+      "sha256": "a211c57d5fce77ebf7f2b0b19ebdc4efc9e2aaa14a4dc9faadd8067f543fa3d7"
+    },
+    {
+      "role": "receipt",
+      "path": "receipts/neuro/triad-smoke-03-nemotron-validation.txt",
+      "bytes": 309,
+      "sha256": "11ea3da818adebec2f0083b87253d21c6cde44fa1128b20c62c92868602cd870"
+    },
+    {
+      "role": "receipt",
+      "path": "receipts/neuro/triad-smoke-04-combined-completion.txt",
+      "bytes": 283,
+      "sha256": "6e08045a6e4b9a0af2a63a4d8648be938af5e168cfe9f0b4c57336a77e1db2ba"
+    },
+    {
+      "role": "memory",
+      "path": "memory/genesis-rag-growth/triad-smoke-test-20260801.md",
+      "bytes": 263,
+      "sha256": "bbec59ffed8f62ec2a17903d0885041728710758eb2d218d05617a6f9c422d73"
+    }
+  ]
 }

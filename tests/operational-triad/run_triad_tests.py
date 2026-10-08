@@ -279,45 +279,225 @@ def test_positive_full_triad():
         check(packet["approval_thresholds"] == "human_pre_approved",
               "Human authority retained (approval required)", cat)
 
-def test_positive_existing_receipts_intact():
-    """Verify the immutable regression-fixture contract is preserved.
+# ---------------------------------------------------------------------------
+# Preservation contract (content integrity, not filenames)
+# ---------------------------------------------------------------------------
 
-    Historical runtime receipts are operational data and are not required to
-    exist in a clean source checkout. The regression gate therefore validates
-    a tracked preservation manifest instead of depending on untracked state.
+PRESERVATION_MANIFEST_PATH = FIXTURES_DIR / "preservation_manifest.json"
+PRESERVATION_ROOT = FIXTURES_DIR / "preservation"
+PRESERVATION_CONTRACT = "agentropolis.operational-triad.preservation.v2"
+SYNTHETIC_MARKER = b"SYNTHETIC REGRESSION FIXTURE"
+
+# Pinned independently of the manifest: weakening the contract requires
+# editing BOTH this table and the manifest, and is visible in review.
+# path -> (sha256, byte_count)
+PINNED_PRESERVED_ARTIFACTS = {
+    "receipts/neuro/triad-smoke-01-hermes-strategy.txt": ("72c8967c05a9e8cf11d6fb691ae6ad7c71aade4cba521bf982714de2f5213eb8", 399),
+    "receipts/neuro/triad-smoke-02-nemoclaw-execution.txt": ("a211c57d5fce77ebf7f2b0b19ebdc4efc9e2aaa14a4dc9faadd8067f543fa3d7", 351),
+    "receipts/neuro/triad-smoke-03-nemotron-validation.txt": ("11ea3da818adebec2f0083b87253d21c6cde44fa1128b20c62c92868602cd870", 309),
+    "receipts/neuro/triad-smoke-04-combined-completion.txt": ("6e08045a6e4b9a0af2a63a4d8648be938af5e168cfe9f0b4c57336a77e1db2ba", 283),
+    "memory/genesis-rag-growth/triad-smoke-test-20260801.md": ("bbec59ffed8f62ec2a17903d0885041728710758eb2d218d05617a6f9c422d73", 263),
+}
+
+
+def sha256_file(path):
+    return hashlib.sha256(pathlib.Path(path).read_bytes()).hexdigest()
+
+
+def snapshot_tree(root):
+    """relpath -> (sha256, bytes) for every regular file under root."""
+    root = pathlib.Path(root)
+    snap = {}
+    for f in sorted(root.rglob("*")):
+        if f.is_file():
+            data = f.read_bytes()
+            snap[f.relative_to(root).as_posix()] = (hashlib.sha256(data).hexdigest(), len(data))
+    return snap
+
+
+def verify_preserved(root, expected):
+    """Content-integrity check. Returns a list of problems (empty = intact).
+
+    Detects: missing (deleted) artifacts, size changes, same-size content
+    mutation (sha256), and non-regular-file substitution.
     """
+    root = pathlib.Path(root)
+    problems = []
+    for rel, (digest, size) in sorted(expected.items()):
+        path = root / rel
+        if not path.exists():
+            problems.append(f"missing: {rel}")
+            continue
+        if not path.is_file() or path.is_symlink():
+            problems.append(f"not a regular file: {rel}")
+            continue
+        data = path.read_bytes()
+        if len(data) != size:
+            problems.append(f"size changed: {rel} {len(data)} != {size}")
+        if hashlib.sha256(data).hexdigest() != digest:
+            problems.append(f"content mutated (sha256): {rel}")
+    return problems
+
+
+def diff_snapshots(before, after):
+    removed = sorted(set(before) - set(after))
+    added = sorted(set(after) - set(before))
+    changed = sorted(k for k in set(before) & set(after) if before[k] != after[k])
+    return removed, added, changed
+
+
+def load_preservation_manifest():
+    if not PRESERVATION_MANIFEST_PATH.exists():
+        return None
+    return json.loads(PRESERVATION_MANIFEST_PATH.read_text(encoding="utf-8"))
+
+
+def test_positive_existing_receipts_intact():
+    """Preserved receipts + memory are intact BY CONTENT, in a clean checkout,
+    and survive a full triad run without mutation or deletion."""
     cat = "POSITIVE"
-    manifest_path = FIXTURES_DIR / "preservation_manifest.json"
-    check(manifest_path.exists(),
-          "Preservation manifest present", cat,
-          f"path: {manifest_path}")
-
-    if not manifest_path.exists():
-        for label in [
-            "triad-smoke-01-hermes-strategy.txt",
-            "triad-smoke-02-nemoclaw-execution.txt",
-            "triad-smoke-03-nemotron-validation.txt",
-            "triad-smoke-04-combined-completion.txt",
-        ]:
-            check(False, f"Preservation contract lists: {label}", cat)
-        check(False, "Preservation contract lists memory entry", cat)
+    manifest = load_preservation_manifest()
+    if not check(manifest is not None, "Preservation manifest present", cat,
+                 f"path: {PRESERVATION_MANIFEST_PATH}"):
+        for rel in PINNED_PRESERVED_ARTIFACTS:
+            check(False, f"Preserved artifact intact: {rel}", cat, "manifest missing")
         return
+    check(manifest.get("contract") == PRESERVATION_CONTRACT,
+          "Preservation manifest contract v2 (hash-based)", cat,
+          f"contract: {manifest.get('contract')}")
 
-    manifest = json.loads(manifest_path.read_text())
-    expected_receipts = [
-        "triad-smoke-01-hermes-strategy.txt",
-        "triad-smoke-02-nemoclaw-execution.txt",
-        "triad-smoke-03-nemotron-validation.txt",
-        "triad-smoke-04-combined-completion.txt",
-    ]
-    listed = manifest.get("receipt_artifacts", [])
-    for label in expected_receipts:
-        check(label in listed,
-              f"Preservation contract lists: {label}", cat)
+    listed = {a["path"]: (a.get("sha256"), a.get("bytes")) for a in manifest.get("artifacts", [])}
+    check(set(listed) == set(PINNED_PRESERVED_ARTIFACTS),
+          "Manifest lists exactly the pinned artifacts (no silent deletion/addition)", cat,
+          f"missing={sorted(set(PINNED_PRESERVED_ARTIFACTS) - set(listed))} extra={sorted(set(listed) - set(PINNED_PRESERVED_ARTIFACTS))}")
+    check(all(listed.get(k) == v for k, v in PINNED_PRESERVED_ARTIFACTS.items()),
+          "Manifest hashes/sizes equal pinned values", cat)
+    check(sum(1 for a in manifest.get("artifacts", []) if a.get("role") == "memory") == 1,
+          "Manifest declares exactly one memory artifact", cat)
 
-    expected_memory = "memory/genesis-rag-growth/triad-smoke-test-20260801.md"
-    check(manifest.get("memory_artifact") == expected_memory,
-          "Preservation contract lists memory entry", cat)
+    # Existence + size + sha256 + content markers of the tracked fixtures.
+    for rel, (digest, size) in PINNED_PRESERVED_ARTIFACTS.items():
+        path = PRESERVATION_ROOT / rel
+        problems = verify_preserved(PRESERVATION_ROOT, {rel: (digest, size)})
+        check(not problems, f"Preserved artifact intact (exists, bytes, sha256): {rel}", cat,
+              "; ".join(problems))
+        if path.exists():
+            data = path.read_bytes()
+            check(SYNTHETIC_MARKER in data and b"\r\n" not in data,
+                  f"Content integrity markers (synthetic label, LF-only): {rel}", cat)
+
+    on_disk = set(snapshot_tree(PRESERVATION_ROOT)) if PRESERVATION_ROOT.exists() else set()
+    check(on_disk == set(PINNED_PRESERVED_ARTIFACTS),
+          "Fixture tree has no unexpected or missing files", cat,
+          f"unexpected={sorted(on_disk - set(PINNED_PRESERVED_ARTIFACTS))} missing={sorted(set(PINNED_PRESERVED_ARTIFACTS) - on_disk)}")
+
+    # Clean-checkout reproducibility: fixtures must be tracked, not local state.
+    git_dir = PROJECT_ROOT / ".git"
+    if git_dir.exists() and shutil.which("git"):
+        import subprocess
+        tracked = subprocess.run(
+            ["git", "-C", str(PROJECT_ROOT), "ls-files", "--", str(PRESERVATION_ROOT.relative_to(PROJECT_ROOT).as_posix())],
+            capture_output=True, text=True)
+        tracked_set = {pathlib.PurePosixPath(l).relative_to(PRESERVATION_ROOT.relative_to(PROJECT_ROOT).as_posix()).as_posix()
+                       for l in tracked.stdout.splitlines() if l.strip()}
+        check(tracked.returncode == 0 and set(PINNED_PRESERVED_ARTIFACTS) <= tracked_set,
+              "Preserved fixtures are git-tracked (clean checkout reproduces them)", cat,
+              f"untracked={sorted(set(PINNED_PRESERVED_ARTIFACTS) - tracked_set)}")
+
+    # Preservation across a full triad run in an isolated workspace that
+    # already holds the historical receipts + memory entry.
+    source_before = snapshot_tree(PRESERVATION_ROOT)
+    with tempfile.TemporaryDirectory(prefix="triad_preserve_") as tmpdir:
+        ws = pathlib.Path(tmpdir)
+        shutil.copytree(PRESERVATION_ROOT, ws, dirs_exist_ok=True)
+        before = snapshot_tree(ws)
+        receipts_dir = ws / "receipts" / "neuro"
+        memory_dir = ws / "memory" / "genesis-rag-growth"
+        packet = hermes_strategy("create triad-smoke-test.txt",
+                                 receipt_destination=str(receipts_dir),
+                                 memory_target=str(memory_dir))
+        out_dir = ws / "out"
+        out_dir.mkdir()
+        expected_content = "AGENTROPOLIS TRIAD ONLINE\n"
+        evidence = nemoclaw_execute(packet, out_dir, expected_content)
+        validation = nemotron_validate(evidence, expected_content, 26, out_dir, "triad-smoke-test.txt")
+        new_receipt = receipts_dir / "triad-regression-run.txt"
+        new_receipt.write_bytes(
+            f"verdict: {validation['verdict']}\nsha256: {evidence['sha256']}\n".encode("utf-8"))
+        new_memory = memory_dir / "triad-regression-run.md"
+        new_memory.write_bytes(b"- source: nemotron-validator\n- verified: true\n")
+        after = snapshot_tree(ws)
+
+        removed, added, changed = diff_snapshots(before, after)
+        check(validation["verdict"] == "PASS", "Triad run inside preserved workspace: NEMOTRON PASS", cat)
+        check(not removed, "Triad run deleted no preserved artifact", cat, f"removed: {removed}")
+        check(not changed, "Triad run mutated no preserved artifact", cat, f"changed: {changed}")
+        check(set(added) == {"out/triad-smoke-test.txt",
+                             "receipts/neuro/triad-regression-run.txt",
+                             "memory/genesis-rag-growth/triad-regression-run.md"},
+              "Triad run added only its own artifact, receipt and memory entry", cat,
+              f"added: {added}")
+        check(not verify_preserved(ws, PINNED_PRESERVED_ARTIFACTS),
+              "Preserved artifacts still match pinned sha256 after triad run", cat)
+    check(snapshot_tree(PRESERVATION_ROOT) == source_before,
+          "Tracked fixture sources unchanged by test run", cat)
+
+
+def test_negative_preservation_detects_tampering():
+    """The preservation check must FAIL on mutation, deletion and substitution,
+    including cases a filename-only check would wrongly pass."""
+    cat = "NEGATIVE"
+    receipt = "receipts/neuro/triad-smoke-03-nemotron-validation.txt"
+    memory = "memory/genesis-rag-growth/triad-smoke-test-20260801.md"
+    with tempfile.TemporaryDirectory(prefix="triad_tamper_") as tmpdir:
+        def fresh(name):
+            ws = pathlib.Path(tmpdir) / name
+            shutil.copytree(PRESERVATION_ROOT, ws)
+            return ws
+
+        ws = fresh("verdict_rewrite")
+        p = ws / receipt
+        p.write_bytes(p.read_bytes().replace(b"verdict: PASS", b"verdict: FAIL"))
+        filename_only_passes = all((ws / r).exists() for r in PINNED_PRESERVED_ARTIFACTS)
+        problems = verify_preserved(ws, PINNED_PRESERVED_ARTIFACTS)
+        check(filename_only_passes and any("content mutated" in x for x in problems),
+              "Same-name, same-size verdict rewrite: filename check passes, hash check FAILS", cat,
+              f"problems: {problems}")
+
+        ws = fresh("byte_flip")
+        p = ws / receipt
+        data = bytearray(p.read_bytes())
+        data[-2] ^= 0x01
+        p.write_bytes(bytes(data))
+        problems = verify_preserved(ws, PINNED_PRESERVED_ARTIFACTS)
+        check(any("content mutated" in x for x in problems) and not any("size changed" in x for x in problems),
+              "Single-bit mutation detected by sha256 (size unchanged)", cat, f"problems: {problems}")
+
+        ws = fresh("deleted")
+        (ws / receipt).unlink()
+        problems = verify_preserved(ws, PINNED_PRESERVED_ARTIFACTS)
+        check(any(x == f"missing: {receipt}" for x in problems),
+              "Deleted receipt detected", cat, f"problems: {problems}")
+
+        ws = fresh("truncated_memory")
+        (ws / memory).write_bytes(b"")
+        problems = verify_preserved(ws, PINNED_PRESERVED_ARTIFACTS)
+        check(any("size changed" in x and memory in x for x in problems),
+              "Truncated memory entry detected", cat, f"problems: {problems}")
+
+        ws = fresh("replaced_by_dir")
+        (ws / memory).unlink()
+        (ws / memory).mkdir()
+        problems = verify_preserved(ws, PINNED_PRESERVED_ARTIFACTS)
+        check(any("not a regular file" in x for x in problems),
+              "Artifact replaced by directory detected", cat, f"problems: {problems}")
+
+        ws = fresh("unexpected_write")
+        before = snapshot_tree(ws)
+        (ws / "receipts" / "neuro" / "forged-receipt.txt").write_bytes(b"verdict: PASS\n")
+        removed, added, changed = diff_snapshots(before, snapshot_tree(ws))
+        check(added == ["receipts/neuro/forged-receipt.txt"] and not removed and not changed,
+              "Unexpected new file in receipt store detected by snapshot diff", cat, f"added: {added}")
 
 def test_positive_nemotron_verdicts():
     """Verify NEMOTRON can issue PASS, FAIL, and QUARANTINE."""
@@ -534,6 +714,7 @@ def run_all_tests():
     test_negative_altered_output()
     test_negative_missing_evidence()
     test_negative_role_impersonation()
+    test_negative_preservation_detects_tampering()
 
 def print_ascii_report():
     """Print human-readable ASCII report."""
