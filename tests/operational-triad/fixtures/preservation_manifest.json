@@ -1,0 +1,11 @@
+{
+  "contract": "agentropolis.operational-triad.preservation.v1",
+  "purpose": "Tracked source-of-truth for regression artifact names. Runtime receipts remain operational evidence and are not required in a clean checkout.",
+  "receipt_artifacts": [
+    "triad-smoke-01-hermes-strategy.txt",
+    "triad-smoke-02-nemoclaw-execution.txt",
+    "triad-smoke-03-nemotron-validation.txt",
+    "triad-smoke-04-combined-completion.txt"
+  ],
+  "memory_artifact": "memory/genesis-rag-growth/triad-smoke-test-20260801.md"
+}
