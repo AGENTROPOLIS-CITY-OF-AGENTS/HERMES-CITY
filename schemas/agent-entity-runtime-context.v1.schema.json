@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentropolis.dev/schemas/hermes-agent-entity-runtime-context.v1.schema.json",
+  "title": "HERMES CITY AGENT-ENTITY Runtime Context v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["agent_entity_id", "agent_did", "runtime_binding_id", "runtime_id"],
+  "properties": {
+    "agent_entity_id": {"type": "string", "minLength": 1},
+    "agent_did": {"type": "string", "minLength": 1},
+    "runtime_binding_id": {"type": "string", "minLength": 1},
+    "runtime_id": {"type": "string", "minLength": 1},
+    "dock_session_ref": {"type": ["string", "null"]},
+    "continuity_passport_ref": {"type": ["string", "null"]},
+    "mandate_ref": {"type": ["string", "null"]},
+    "execution_envelope_ref": {"type": ["string", "null"]},
+    "capability_policy_ref": {"type": ["string", "null"]},
+    "revocation_state": {"type": "string", "enum": ["active", "suspended", "revoked", "expired"]}
+  }
+}
