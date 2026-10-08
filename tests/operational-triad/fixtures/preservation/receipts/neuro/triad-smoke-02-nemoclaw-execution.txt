@@ -1,0 +1,8 @@
+SYNTHETIC REGRESSION FIXTURE - not an operational receipt. Do not edit; hashes are pinned in tests/operational-triad/run_triad_tests.py.
+receipt_id: triad-smoke-02
+phase: NEMOCLAW execution
+agent: nemoclaw-executor
+artifact: triad-smoke-test.txt
+byte_count: 26
+sha256: ee96ae005df0ce9fceddcd75f888d9a16f08711ea4f21ad39c777ff14239dd84
+status: EXECUTED

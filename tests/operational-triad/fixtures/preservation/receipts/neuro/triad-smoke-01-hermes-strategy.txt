@@ -1,0 +1,10 @@
+SYNTHETIC REGRESSION FIXTURE - not an operational receipt. Do not edit; hashes are pinned in tests/operational-triad/run_triad_tests.py.
+receipt_id: triad-smoke-01
+phase: HERMES strategy
+agent: neuro-hermes-strategist
+mandate: create one local text file with exact content
+contribution_mode: asset_creation
+allowed_tools: write_file
+budget: 0
+approval_thresholds: human_pre_approved
+status: PLANNED

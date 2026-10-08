@@ -20,7 +20,7 @@
 
     const root = document.querySelector("#genui-root");
     const log = document.querySelector("#genui-log");
-    const response = await fetch("./tests/fixtures/genui/market.valid.json", { cache: "no-store" });
+    const response = await fetch("./genui/market.valid.json", { cache: "no-store" });
     if (!response.ok) throw new Error(`manifest fetch failed: ${response.status}`);
     const manifest = await response.json();
     renderGenUI(root, manifest, { liveExternalActions: false });

@@ -1,0 +1,55 @@
+{
+  "contract": "agentropolis.hermes-city.pages-allowlist.v1",
+  "purpose": "Explicit allowlist of files published to GitHub Pages. Anything not listed here is never copied into the Pages artifact. Adding a path requires review: confirm it is public-safe (no config, receipts, memory, credentials, prompts, governance evidence, exploit detail, operational state, or source/build inputs).",
+  "files": [
+    "index.html",
+    "404.html",
+    "robots.txt",
+    "sitemap.xml",
+    "app.js",
+    "styles.css",
+    "spatial-runtime.js",
+    "spatial-runtime-manifest.json",
+    "district-legacy.css",
+    "district-legacy.js",
+    "mcp-config.js",
+    "mcp-config.json",
+    "mcp-status.js",
+    "mcp-shared.css",
+    "genui-beta.html",
+    "genui-beta.css",
+    "genui-renderer.js",
+    "LICENSE",
+    "NOTICE.md",
+    "assets/favicon.svg",
+    "assets/city-card.png",
+    "assets/three.module.js",
+    "assets/THREE_LICENSE.txt",
+    "community/index.html",
+    "social/index.html",
+    "super-hermes/index.html",
+    "realization/index.html",
+    "botmode/index.html",
+    "docking/index.html",
+    "docking/docking.js",
+    "docking/docking.css",
+    "docs/architecture.md"
+  ],
+  "mapped_files": [
+    {
+      "from": "tests/fixtures/genui/market.valid.json",
+      "to": "genui/market.valid.json",
+      "reason": "Public sample manifest rendered by genui-beta.html; the CI-validated fixture is the single source of truth."
+    }
+  ],
+  "built_directories": [
+    {
+      "from": "dist/visual-compute",
+      "to": "visual-compute",
+      "allowed_extensions": [".html", ".js", ".css", ".svg", ".png", ".jpg", ".jpeg", ".webp", ".woff", ".woff2"]
+    }
+  ],
+  "inject_scripts": [
+    { "page": "index.html", "tag": "<script src=\"spatial-runtime.js\" defer></script>" }
+  ]
+}

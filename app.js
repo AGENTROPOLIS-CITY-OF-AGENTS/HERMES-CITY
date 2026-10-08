@@ -1,291 +1,304 @@
 import * as THREE from "./assets/three.module.js";
 
-const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+/*
+ * HERMES CITY globe-first shell (AGENTROPOLIS Design System 0.2.0).
+ *
+ * Presentation tiers are a real runtime lifecycle, not just a DOM attribute:
+ *   FULL      highest geometry / pixel ratio, 60 fps loop
+ *   ADAPTIVE  device-aware: adaptive profile, or the lite profile on
+ *             save-data / low-memory / low-core devices
+ *   LITE      no antialiasing, pixel ratio 1, low geometry, 30 fps cap
+ *   MINIMUM   WebGL torn down (context released), static district map shown
+ * Every tier change disposes the current renderer and mounts a new one, so
+ * switching tiers mid-session changes the actual rendering cost.
+ *
+ * Visualization is not the source of truth and grants no authority.
+ */
 
-const bootLines = [
-  "boot://hermes-city",
-  "mode: static mini 3d agentropolis",
-  "core: hermes orchestration tower",
-  "district: nemoclaw builder works",
-  "district: nemotron research council",
-  "district: wallet rails commerce lane",
-  "boundary: public shell only",
-  "license: apache-2.0",
-  "ready: city interface online"
-];
+const TIERS = ["full", "adaptive", "lite", "minimum"];
+const TIER_LABELS = {
+  full: "FULL — highest globe detail",
+  adaptive: "ADAPTIVE — detail matched to this device",
+  lite: "LITE — reduced globe detail, 30 fps",
+  minimum: "MINIMUM — 3D globe off, static district map"
+};
+const STORAGE_KEY = "agentropolis-tier";
 
-const terminal = document.querySelector("#typewriter");
-const revealItems = document.querySelectorAll(".reveal");
+const PROFILES = {
+  full: { name: "full", webgl: true, antialias: true, maxPixelRatio: 2, sphere: [64, 48], stars: 600, fps: 60 },
+  adaptive: { name: "adaptive", webgl: true, antialias: true, maxPixelRatio: 1.25, sphere: [48, 32], stars: 360, fps: 60 },
+  lite: { name: "lite", webgl: true, antialias: false, maxPixelRatio: 1, sphere: [24, 16], stars: 120, fps: 30 },
+  minimum: { name: "minimum", webgl: false }
+};
 
-function revealOnScroll() {
-  const trigger = window.innerHeight * 0.88;
-  revealItems.forEach((item) => {
-    const top = item.getBoundingClientRect().top;
-    if (top < trigger) item.classList.add("visible");
-  });
+const html = document.documentElement;
+const tierButtons = [...document.querySelectorAll(".tier-control [data-tier]")];
+const tierStatus = document.querySelector("#tier-status");
+const fallbackEl = document.querySelector("#globe-fallback");
+const fallbackReason = document.querySelector("#globe-fallback-reason");
+const reducedQuery = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+
+/* Persistence is optional: blocked storage (sandboxed iframes, strict
+ * privacy policies) must never stop the globe or the tier controls. */
+const storage = {
+  get() {
+    try { return window.localStorage.getItem(STORAGE_KEY); } catch { return null; }
+  },
+  set(value) {
+    try { window.localStorage.setItem(STORAGE_KEY, value); } catch { /* non-persistent session */ }
+  }
+};
+
+function prefersReducedMotion() {
+  return Boolean(reducedQuery && reducedQuery.matches);
 }
 
-function typeBootSequence() {
-  if (!terminal) return;
-  if (prefersReducedMotion) {
-    terminal.textContent = bootLines.join("\n") + "\nCITY READY";
+function isLowPowerDevice() {
+  const nav = window.navigator || {};
+  const conn = nav.connection;
+  if (conn && conn.saveData) return true;
+  if (typeof nav.deviceMemory === "number" && nav.deviceMemory <= 4) return true;
+  if (typeof nav.hardwareConcurrency === "number" && nav.hardwareConcurrency <= 4) return true;
+  return false;
+}
+
+function resolveProfile(tier) {
+  if (tier === "adaptive" && isLowPowerDevice()) return { ...PROFILES.lite, name: "adaptive-lite" };
+  return PROFILES[tier] || PROFILES.adaptive;
+}
+
+function showFallback(reason) {
+  html.dataset.globeState = reason === "minimum" ? "fallback-minimum" : "fallback-no-webgl";
+  if (!fallbackEl) return;
+  if (fallbackReason) {
+    fallbackReason.textContent = reason === "minimum"
+      ? "MINIMUM tier: the 3D globe is switched off to save power. The district map remains available below."
+      : "3D globe unavailable in this browser (WebGL could not start). The district map remains available below.";
+  }
+  fallbackEl.hidden = false;
+}
+
+let webglProbe = null;
+function webglAvailable() {
+  // Probe once on a throwaway canvas so unsupported browsers go straight to
+  // the static map instead of retrying renderer creation on every tier change.
+  if (webglProbe === null) {
+    try {
+      const probe = document.createElement("canvas");
+      webglProbe = Boolean(probe.getContext("webgl2") || probe.getContext("webgl"));
+    } catch {
+      webglProbe = false;
+    }
+  }
+  return webglProbe;
+}
+
+function hideFallback() {
+  if (fallbackEl) fallbackEl.hidden = true;
+}
+
+/* ---------- Globe lifecycle ---------- */
+
+let active = null; // { dispose() }
+
+function freshCanvas() {
+  // A canvas whose WebGL context was released cannot host a new renderer,
+  // so every mount gets a fresh element with the same identity/attributes.
+  const old = document.querySelector("#globe3d");
+  if (!old) return null;
+  const canvas = old.cloneNode(false);
+  old.replaceWith(canvas);
+  return canvas;
+}
+
+function stageSize(canvas) {
+  const host = canvas.parentElement || canvas;
+  const rect = host.getBoundingClientRect();
+  return { width: Math.max(1, Math.round(rect.width)), height: Math.max(1, Math.round(rect.height)) };
+}
+
+function mountGlobe(profile) {
+  if (active) { active.dispose(); active = null; }
+  html.dataset.globeQuality = profile.name;
+
+  if (!profile.webgl) {
+    const canvas = freshCanvas();
+    if (canvas) canvas.hidden = true;
+    showFallback("minimum");
     return;
   }
-  let lineIndex = 0;
-  let charIndex = 0;
-  let output = "";
 
-  function tick() {
-    const line = bootLines[lineIndex];
-    output += line[charIndex] || "";
-    terminal.textContent = output + "_";
-    charIndex += 1;
-
-    if (charIndex > line.length) {
-      output += "\n";
-      lineIndex += 1;
-      charIndex = 0;
-    }
-
-    if (lineIndex < bootLines.length) {
-      setTimeout(tick, charIndex === 0 ? 220 : 22);
-    } else {
-      terminal.textContent = output + "\nCITY READY";
-    }
-  }
-
-  tick();
-}
-
-function addCardSignals() {
-  document.querySelectorAll(".card").forEach((card, index) => {
-    card.addEventListener("pointermove", (event) => {
-      const rect = card.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
-      card.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(35, 231, 255, 0.18), rgba(12, 18, 28, 0.78) 42%)`;
-    });
-    card.addEventListener("pointerleave", () => {
-      card.style.background = "rgba(12, 18, 28, 0.78)";
-    });
-    card.style.transitionDelay = `${index * 80}ms`;
-  });
-}
-
-function showStaticFallback(canvas) {
+  const canvas = freshCanvas();
   if (!canvas) return;
-  document.body.classList.add("no-webgl");
-  canvas.setAttribute("aria-hidden", "true");
-  let fallback = document.querySelector(".city-fallback");
-  if (fallback) return;
-  fallback = document.createElement("div");
-  fallback.className = "city-fallback";
-  fallback.setAttribute("role", "img");
-  fallback.setAttribute("aria-label", "Static map of the Agentropolis districts: Hermes HQ, NemoClaw Works, Nemotron Council, Wallet Rails, RAILWATCH, Mission Control");
-  const towerList = [
-    "Hermes HQ",
-    "NemoClaw Works",
-    "Nemotron Council",
-    "Wallet Rails",
-    "RAILWATCH",
-    "Mission Control"
-  ];
-  const heading = document.createElement("p");
-  heading.className = "city-fallback-heading";
-  heading.textContent = "3D city visualization unavailable";
-  fallback.appendChild(heading);
-  const note = document.createElement("p");
-  note.textContent = "This environment does not support WebGL (or motion is reduced). The districts below remain mapped.";
-  fallback.appendChild(note);
-  const list = document.createElement("ul");
-  towerList.forEach((name) => {
-    const li = document.createElement("li");
-    li.textContent = name;
-    list.appendChild(li);
-  });
-  fallback.appendChild(list);
-  canvas.insertAdjacentElement("afterend", fallback);
-}
+  canvas.hidden = false;
 
-function createMiniCity() {
-  const canvas = document.querySelector("#city3d");
-  if (!canvas) return;
-
-  let webglSupported = false;
-  try {
-    webglSupported = Boolean(canvas.getContext("webgl2") || canvas.getContext("webgl"));
-  } catch (err) {
-    webglSupported = false;
-  }
-  if (!webglSupported) {
-    showStaticFallback(canvas);
+  if (!webglAvailable()) {
+    canvas.hidden = true;
+    showFallback("no-webgl");
     return;
   }
 
   let renderer;
   try {
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-  } catch (err) {
-    showStaticFallback(canvas);
+    renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: profile.antialias, powerPreference: "low-power" });
+  } catch {
+    canvas.hidden = true;
+    showFallback("no-webgl");
     return;
   }
+  hideFallback();
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x05070b, 0.028);
-
-  const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 120);
-  camera.position.set(13, 11, 18);
-  camera.lookAt(0, 1.6, 0);
-
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, prefersReducedMotion ? 1 : 1.8));
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+  camera.position.set(0, 1.2, 9.5);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, profile.maxPixelRatio));
 
   const group = new THREE.Group();
   scene.add(group);
-
-  const cyan = new THREE.Color(0x23e7ff);
-  const red = new THREE.Color(0xff2b4f);
-  const lime = new THREE.Color(0xb8ff42);
-  const purple = new THREE.Color(0xa855f7);
-
-  const ground = new THREE.Mesh(
-    new THREE.CylinderGeometry(8.5, 9.4, 0.22, 96),
-    new THREE.MeshStandardMaterial({ color: 0x07111b, metalness: 0.45, roughness: 0.35 })
+  group.add(new THREE.Mesh(
+    new THREE.SphereGeometry(2.45, profile.sphere[0], profile.sphere[1]),
+    new THREE.MeshStandardMaterial({ color: 0x071118, metalness: 0.58, roughness: 0.55, emissive: 0x06252a, emissiveIntensity: 0.35 })
+  ));
+  group.add(new THREE.LineSegments(
+    new THREE.WireframeGeometry(new THREE.SphereGeometry(2.48, 24, 16)),
+    new THREE.LineBasicMaterial({ color: 0x19e6e6, transparent: true, opacity: 0.18 })
+  ));
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(3.45, 0.012, 8, 180),
+    new THREE.MeshBasicMaterial({ color: 0x19e6e6, transparent: true, opacity: 0.32 })
   );
-  ground.position.y = -0.13;
-  group.add(ground);
+  ring.rotation.x = Math.PI / 2.6;
+  ring.rotation.z = 0.35;
+  group.add(ring);
 
-  const ringMaterial = new THREE.MeshBasicMaterial({ color: 0x23e7ff, transparent: true, opacity: 0.28 });
-  [4.4, 6.2, 8.1].forEach((radius, index) => {
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.012, 8, 160), ringMaterial.clone());
-    ring.rotation.x = Math.PI / 2;
-    ring.position.y = 0.02 + index * 0.025;
-    group.add(ring);
-  });
-
-  const districts = [
-    { name: "Hermes HQ", x: 0, z: 0, h: 5.8, color: cyan },
-    { name: "NemoClaw Works", x: -4.1, z: -2.7, h: 3.7, color: red },
-    { name: "Nemotron Council", x: 4.4, z: -2.4, h: 4.2, color: purple },
-    { name: "Wallet Rails", x: -4.6, z: 3.4, h: 3.1, color: lime },
-    { name: "RAILWATCH", x: 4.8, z: 3.1, h: 3.4, color: cyan },
-    { name: "Mission Control", x: 0.2, z: 5.3, h: 2.8, color: red }
+  const nodes = [
+    ["HERMES CITY", new THREE.Vector3(2.2, 0.8, 1.3)],
+    ["CREATOR CORE", new THREE.Vector3(-1.6, 1.7, 1.6)],
+    ["AGENT MCP", new THREE.Vector3(-2.15, -0.5, 1.2)],
+    ["WORLDQ", new THREE.Vector3(0.1, -2.2, 1.5)],
+    ["AQUADUCT", new THREE.Vector3(1.2, 1.9, -1.5)],
+    ["GAMING", new THREE.Vector3(-1.5, -1.4, -1.6)]
   ];
-
-  const labelLayer = document.createElement("div");
-  labelLayer.className = "city-label-layer";
-  document.body.appendChild(labelLayer);
-
-  const labels = [];
-
-  districts.forEach((district, index) => {
-    const building = new THREE.Mesh(
-      new THREE.BoxGeometry(1.1, district.h, 1.1),
-      new THREE.MeshStandardMaterial({
-        color: 0x0c1724,
-        emissive: district.color,
-        emissiveIntensity: index === 0 ? 0.28 : 0.16,
-        metalness: 0.72,
-        roughness: 0.28
-      })
-    );
-    building.position.set(district.x, district.h / 2, district.z);
-    group.add(building);
-
-    const cap = new THREE.Mesh(
-      new THREE.BoxGeometry(1.25, 0.08, 1.25),
-      new THREE.MeshBasicMaterial({ color: district.color, transparent: true, opacity: 0.72 })
-    );
-    cap.position.set(district.x, district.h + 0.07, district.z);
-    group.add(cap);
-
-    const beam = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.025, 0.025, 6.5, 16),
-      new THREE.MeshBasicMaterial({ color: district.color, transparent: true, opacity: 0.24 })
-    );
-    beam.position.set(district.x, district.h + 3.3, district.z);
-    group.add(beam);
-
-    const label = document.createElement("span");
-    label.className = "city-label";
-    label.textContent = district.name;
-    labelLayer.appendChild(label);
-    labels.push({ label, position: new THREE.Vector3(district.x, district.h + 0.6, district.z) });
-  });
-
-  const roadMaterial = new THREE.LineBasicMaterial({ color: 0xff2b4f, transparent: true, opacity: 0.42 });
-  districts.slice(1).forEach((district) => {
-    const points = [new THREE.Vector3(0, 0.06, 0), new THREE.Vector3(district.x, 0.06, district.z)];
-    const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), roadMaterial);
-    group.add(line);
-  });
-
-  const starGeometry = new THREE.BufferGeometry();
-  const starCount = 420;
-  const positions = new Float32Array(starCount * 3);
-  for (let i = 0; i < starCount; i += 1) {
-    positions[i * 3] = (Math.random() - 0.5) * 80;
-    positions[i * 3 + 1] = Math.random() * 36 + 4;
-    positions[i * 3 + 2] = (Math.random() - 0.5) * 80;
-  }
-  starGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  scene.add(new THREE.Points(starGeometry, new THREE.PointsMaterial({ color: 0x23e7ff, size: 0.035, transparent: true, opacity: 0.62 })));
-
-  scene.add(new THREE.AmbientLight(0x8fb8ff, 0.45));
-  const key = new THREE.PointLight(0x23e7ff, 95, 40);
-  key.position.set(0, 8, 2);
-  scene.add(key);
-  const accent = new THREE.PointLight(0xff2b4f, 65, 35);
-  accent.position.set(-7, 4, 5);
-  scene.add(accent);
-
-  const clock = new THREE.Clock();
-
-  function projectLabels() {
-    labels.forEach(({ label, position }) => {
-      const projected = position.clone().applyMatrix4(group.matrixWorld).project(camera);
-      const x = (projected.x * 0.5 + 0.5) * window.innerWidth;
-      const y = (-projected.y * 0.5 + 0.5) * window.innerHeight;
-      label.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-      label.style.opacity = projected.z > 1 ? "0" : "1";
-    });
-  }
-
-  function animate() {
-    const elapsed = clock.getElapsedTime();
-    if (prefersReducedMotion) {
-      group.rotation.y = 0.6;
-    } else {
-      group.rotation.y = elapsed * 0.075;
-      group.position.y = Math.sin(elapsed * 0.7) * 0.08;
+  nodes.forEach(([, pos], i) => {
+    const m = new THREE.Mesh(new THREE.SphereGeometry(i === 0 ? 0.14 : 0.08, 12, 12), new THREE.MeshBasicMaterial({ color: 0x19e6e6 }));
+    m.position.copy(pos);
+    group.add(m);
+    if (i === 0) {
+      const pulse = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.016, 8, 40), new THREE.MeshBasicMaterial({ color: 0x19e6e6, transparent: true, opacity: 0.6 }));
+      pulse.position.copy(pos);
+      pulse.lookAt(camera.position);
+      group.add(pulse);
     }
-    projectLabels();
-    renderer.render(scene, camera);
-    if (!prefersReducedMotion) requestAnimationFrame(animate);
-  }
-
-  window.addEventListener("resize", () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
   });
 
-  animate();
+  const starsGeo = new THREE.BufferGeometry();
+  const positions = new Float32Array(profile.stars * 3);
+  for (let i = 0; i < profile.stars; i++) {
+    positions[i * 3] = (Math.random() - 0.5) * 44;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * 30;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 30;
+  }
+  starsGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  scene.add(new THREE.Points(starsGeo, new THREE.PointsMaterial({ color: 0x19e6e6, size: 0.025, transparent: true, opacity: 0.45 })));
+
+  scene.add(new THREE.AmbientLight(0xbad7e8, 0.65));
+  const key = new THREE.PointLight(0x19e6e6, 55, 30);
+  key.position.set(4, 5, 6);
+  scene.add(key);
+  const risk = new THREE.PointLight(0xff2a2a, 18, 22);
+  risk.position.set(-5, -2, 3);
+  scene.add(risk);
+
+  // Size renderer + camera from the stage the canvas actually fills (not the
+  // viewport), so the globe keeps its aspect ratio at any stage shape.
+  function resize() {
+    const { width, height } = stageSize(canvas);
+    renderer.setSize(width, height, false);
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    if (!loopRunning) drawFrame(performance.now());
+  }
+
+  const start = performance.now();
+  let rafId = 0;
+  let lastFrame = 0;
+  let loopRunning = false;
+  const frameInterval = 1000 / profile.fps;
+
+  function drawFrame(now) {
+    const t = (now - start) / 1000;
+    group.rotation.y = prefersReducedMotion() ? -0.65 : -0.65 + t * 0.055;
+    group.rotation.x = -0.09;
+    renderer.render(scene, camera);
+  }
+
+  function loop(now) {
+    if (!loopRunning) return;
+    rafId = requestAnimationFrame(loop);
+    if (now - lastFrame < frameInterval - 1) return;
+    lastFrame = now;
+    drawFrame(now);
+  }
+
+  function syncLoop() {
+    const shouldRun = !prefersReducedMotion() && !document.hidden;
+    if (shouldRun && !loopRunning) {
+      loopRunning = true;
+      html.dataset.globeState = "running";
+      rafId = requestAnimationFrame(loop);
+    } else if (!shouldRun) {
+      if (loopRunning) cancelAnimationFrame(rafId);
+      loopRunning = false;
+      html.dataset.globeState = prefersReducedMotion() ? "static-frame" : "paused";
+      drawFrame(performance.now());
+    }
+  }
+
+  const ro = typeof ResizeObserver === "function" ? new ResizeObserver(resize) : null;
+  if (ro) ro.observe(canvas.parentElement || canvas);
+  else window.addEventListener("resize", resize);
+  document.addEventListener("visibilitychange", syncLoop);
+  if (reducedQuery && reducedQuery.addEventListener) reducedQuery.addEventListener("change", syncLoop);
+
+  resize();
+  syncLoop();
+
+  active = {
+    dispose() {
+      loopRunning = false;
+      cancelAnimationFrame(rafId);
+      if (ro) ro.disconnect();
+      else window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", syncLoop);
+      if (reducedQuery && reducedQuery.removeEventListener) reducedQuery.removeEventListener("change", syncLoop);
+      scene.traverse((obj) => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) [].concat(obj.material).forEach((m) => m.dispose());
+      });
+      renderer.dispose();
+      renderer.forceContextLoss();
+      html.dataset.globeState = "disposed";
+    }
+  };
 }
 
-window.addEventListener("scroll", revealOnScroll, { passive: true });
-window.addEventListener("load", () => {
-  if (prefersReducedMotion) {
-    revealItems.forEach((item) => item.classList.add("visible"));
-  } else {
-    revealOnScroll();
-  }
-  typeBootSequence();
-  addCardSignals();
-  try {
-    createMiniCity();
-  } catch (err) {
-    console.warn("3D city unavailable:", err);
-    showStaticFallback(document.querySelector("#city3d"));
-  }
-});
+/* ---------- Tier control ---------- */
+
+function setTier(tier, { persist = true, announce = true } = {}) {
+  if (!TIERS.includes(tier)) tier = "adaptive";
+  const changed = html.dataset.tier !== tier || !html.dataset.globeState;
+  html.dataset.tier = tier;
+  tierButtons.forEach((b) => {
+    const on = b.dataset.tier === tier;
+    b.classList.toggle("active", on);
+    b.setAttribute("aria-pressed", String(on));
+  });
+  if (persist) storage.set(tier);
+  if (announce && tierStatus) tierStatus.textContent = "Experience tier: " + TIER_LABELS[tier];
+  if (changed) mountGlobe(resolveProfile(tier));
+}
+
+tierButtons.forEach((b) => b.addEventListener("click", () => setTier(b.dataset.tier)));
+
+const saved = storage.get();
+setTier(TIERS.includes(saved) ? saved : "adaptive", { persist: false, announce: false });

@@ -1,2 +1,7 @@
 node_modules/
 dist/
+_site/
+__pycache__/
+pages-artifact-inventory.json
+tests/operational-triad/test_report.json
+tests/operational-triad/test_report.txt
