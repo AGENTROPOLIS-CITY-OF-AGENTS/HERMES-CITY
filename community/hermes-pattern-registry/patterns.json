@@ -1,0 +1,135 @@
+{
+  "registry": "AGENTROPOLIS_HERMES_PATTERN_REGISTRY",
+  "version": "0.1.0",
+  "canon_status": "PROVISIONAL",
+  "source": {
+    "type": "web",
+    "url": "https://hermes-agent.nousresearch.com/docs/user-stories",
+    "observed_story_count": 326,
+    "observed_category_count": 15,
+    "observed_source_count": 11,
+    "evidence_state": "OBSERVED"
+  },
+  "promotion_flow": [
+    "OBSERVED",
+    "NORMALIZED",
+    "REVIEWED",
+    "TESTED",
+    "VERIFIED",
+    "SIGNED",
+    "AUTHORIZED"
+  ],
+  "patterns": [
+    {
+      "id": "HPR-001",
+      "name": "tool-permission-authority",
+      "evidence_state": "OBSERVED",
+      "risk": "R2",
+      "summary": "Enforce agent authority with tool restrictions rather than prompt text alone.",
+      "agentropolis_mapping": ["AEGIS", "AGENT-MCP", "Execution Envelope"],
+      "required_review": ["VERITY", "SENTINEL-6"],
+      "promotion": "REVIEWED"
+    },
+    {
+      "id": "HPR-002",
+      "name": "builder-auditor-separation",
+      "evidence_state": "OBSERVED",
+      "risk": "R1",
+      "summary": "Use a separate agent/model to audit work produced by another agent.",
+      "agentropolis_mapping": ["Hermes Fleet", "VERITY", "SENTINEL-6"],
+      "required_review": ["VERITY"],
+      "promotion": "REVIEWED"
+    },
+    {
+      "id": "HPR-003",
+      "name": "shared-durable-memory",
+      "evidence_state": "OBSERVED",
+      "risk": "R1",
+      "summary": "Use one durable shared knowledge surface across multiple agent runtimes while preserving provenance.",
+      "agentropolis_mapping": ["WikiVault", "G-Brain", "Continuity Plane"],
+      "required_review": ["VERITY"],
+      "promotion": "REVIEWED"
+    },
+    {
+      "id": "HPR-004",
+      "name": "persistent-cron-operations",
+      "evidence_state": "OBSERVED",
+      "risk": "R2",
+      "summary": "Schedule recurring read, triage, and operational tasks with bounded credentials and change detection.",
+      "agentropolis_mapping": ["Hermes", "Mission Control", "Receipts"],
+      "required_review": ["AEGIS"],
+      "promotion": "REVIEWED"
+    },
+    {
+      "id": "HPR-005",
+      "name": "mobile-operator-surface",
+      "evidence_state": "OBSERVED",
+      "risk": "R2",
+      "summary": "Use mobile/PWA/iOS/Android surfaces for approvals, status, steering, and bounded commands.",
+      "agentropolis_mapping": ["AGENTROPOLIS-POCKET", "HERMES-ANDROID", "HERMES-SOCIAL"],
+      "required_review": ["AEGIS", "VERITY"],
+      "promotion": "REVIEWED"
+    },
+    {
+      "id": "HPR-006",
+      "name": "skill-emergence-with-gate",
+      "evidence_state": "OBSERVED",
+      "risk": "R2",
+      "summary": "Convert repeated successful workflows into candidate skills, but require evaluation and signed promotion before authorization.",
+      "agentropolis_mapping": ["Skill Registry", "Skill Install Assurance Gate", "Signed Skill Evaluation Receipt"],
+      "required_review": ["VERITY", "AEGIS", "SENTINEL-6"],
+      "promotion": "REVIEWED"
+    },
+    {
+      "id": "HPR-007",
+      "name": "runtime-rollback",
+      "evidence_state": "OBSERVED",
+      "risk": "R1",
+      "summary": "Maintain reversible checkpoints for file/system changes and restore both workspace and execution context after failures.",
+      "agentropolis_mapping": ["Execution Envelope", "Mission Control", "Receipt Ledger"],
+      "required_review": ["SENTINEL-6"],
+      "promotion": "REVIEWED"
+    },
+    {
+      "id": "HPR-008",
+      "name": "signed-tool-verification",
+      "evidence_state": "OBSERVED",
+      "risk": "R2",
+      "summary": "Verify tool identity, integrity, declared capabilities, and publisher provenance before invocation.",
+      "agentropolis_mapping": ["AEGIS", "AGENT-MCP", "Skill Registry"],
+      "required_review": ["VERITY", "AEGIS"],
+      "promotion": "REVIEWED"
+    },
+    {
+      "id": "HPR-009",
+      "name": "local-first-runtime",
+      "evidence_state": "OBSERVED",
+      "risk": "R1",
+      "summary": "Prefer local/self-hosted execution where appropriate while preserving isolation, reproducibility, and operator control.",
+      "agentropolis_mapping": ["Hermes", "NemoClaw/Nemotron", "Continuity Plane"],
+      "required_review": ["AEGIS"],
+      "promotion": "REVIEWED"
+    },
+    {
+      "id": "HPR-010",
+      "name": "cost-aware-routing",
+      "evidence_state": "OBSERVED",
+      "risk": "R0",
+      "summary": "Route deterministic work to scripts/local models and reserve higher-cost models for ambiguity and synthesis.",
+      "agentropolis_mapping": ["Hermes Router", "Mission Control", "Cost Receipts"],
+      "required_review": ["VERITY"],
+      "promotion": "REVIEWED"
+    },
+    {
+      "id": "HPR-011",
+      "name": "market-evidence-not-orders",
+      "evidence_state": "OBSERVED",
+      "risk": "R3",
+      "summary": "Market/trading workflows may produce evidence and recommendations; execution authority remains separately gated.",
+      "agentropolis_mapping": ["FIN54", "MarketEvidence", "ATG", "AEGIS", "Execution Envelope"],
+      "required_review": ["VERITY", "AEGIS"],
+      "promotion": "REVIEWED",
+      "hard_rule": "Signals are evidence, not orders."
+    }
+  ]
+}
