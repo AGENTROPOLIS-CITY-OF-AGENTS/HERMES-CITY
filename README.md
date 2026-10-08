@@ -211,7 +211,9 @@ The site deploys automatically from `main` using `.github/workflows/pages.yml`.
 
 The deployment contains static public files only. No production secrets, social tokens, wallet credentials, or private runtime configuration belong in this repository.
 
-Live URL: https://wiredchaos.github.io/HERMES-CITY/
+The Pages artifact is assembled from an explicit allowlist (`scripts/pages-allowlist.json`) by `python3 scripts/pages_artifact.py assemble`; nothing else is copied. `python3 scripts/pages_artifact.py verify` then fails the build if any non-allowlisted path, protected path (`config/`, `.github/`, `RECEIPTS/`, `memory/`, `tests/`, `scripts/`, package/build files, dotfiles), symlink or credential pattern appears in `_site`. Adding a published file requires an allowlist change in review.
+
+Live URL: https://agentropolis-city-of-agents.github.io/HERMES-CITY/
 
 Public routes (verified):
 
