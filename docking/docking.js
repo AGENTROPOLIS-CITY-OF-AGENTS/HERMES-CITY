@@ -9,29 +9,48 @@ const resetBtn = document.querySelector("#resetBtn");
 const eventLog = document.querySelector("#eventLog");
 const agentCountEl = document.querySelector("#agentCount");
 const runtimeStateEl = document.querySelector("#runtimeState");
-const modeEl = document.querySelector(".mode");
+const modeEl = document.querySelector("#sourceMode");
+const truthBadge = document.querySelector("#truthBadge");
 const selectedAgentEl = document.querySelector("#selectedAgent");
 const selectedActivityEl = document.querySelector("#selectedActivity");
 const selectedSpaceEl = document.querySelector("#selectedSpace");
 const selectedOriginEl = document.querySelector("#selectedOrigin");
+const selectedPolicyEl = document.querySelector("#selectedPolicy");
+const inspectorStateEl = document.querySelector("#inspectorState");
+const inspectorAgentEl = document.querySelector("#inspectorAgent");
+const inspectorOriginEl = document.querySelector("#inspectorOrigin");
+const inspectorSpaceEl = document.querySelector("#inspectorSpace");
+const inspectorActivityEl = document.querySelector("#inspectorActivity");
+const inspectorPolicyEl = document.querySelector("#inspectorPolicy");
+const inspectorEventEl = document.querySelector("#inspectorEvent");
+const inspectorDestinationEl = document.querySelector("#inspectorDestination");
+const fallbackAgentCountEl = document.querySelector("#fallbackAgentCount");
+const fallbackLatestEventEl = document.querySelector("#fallbackLatestEvent");
 
 const LIVE_ENDPOINT = "/api/docking/spatial-events";
 const POLL_MS = 3000;
+const VALID_SPACES = new Set([
+  "arrival_gate", "identity_customs", "quarantine_bay", "passport_hall", "social_commons",
+  "berth_exchange", "dispatch_concourse", "observation_gallery", "audit_terminal", "return_gate"
+]);
 let eventSourceMode = "SIMULATED";
 let seenLiveEvents = new Set();
 
 let renderer;
+let webglAvailable = true;
 try {
   renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
 } catch (error) {
+  webglAvailable = false;
   fallback.hidden = false;
   canvas.hidden = true;
-  throw error;
 }
 
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.setSize(window.innerWidth, window.innerHeight);
+if (renderer) {
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x05070b);
@@ -170,12 +189,13 @@ function makeAgent(id, origin = "EXTERNAL", color = null) {
   const agent = {
     id, origin, group, shell, halo, color: hue,
     activity: "moving", space: "arrival_gate", policy: "review",
-    targetSpace: "arrival_gate", target: group.position.clone(), speed: 1.35,
+    targetSpace: "arrival_gate", destination: "arrival_gate", target: group.position.clone(), speed: 1.35,
     lastEvent: "spawned"
   };
   agents.push(agent);
   agentById.set(id, agent);
   agentCountEl.textContent = String(agents.length);
+  fallbackAgentCountEl.textContent = String(agents.length);
   return agent;
 }
 
@@ -185,6 +205,7 @@ function removeAllAgents() {
   agentById.clear();
   selectedAgent = null;
   agentCountEl.textContent = "0";
+  fallbackAgentCountEl.textContent = "0";
   refreshSelected();
 }
 
@@ -192,15 +213,21 @@ function setMode(mode, reason = "") {
   if (eventSourceMode === mode) return;
   eventSourceMode = mode;
   runtimeStateEl.textContent = mode;
-  modeEl.textContent = mode === "LIVE" ? "LIVE GOVERNED EVENT SOURCE" : "SIMULATED EVENT SOURCE";
+  modeEl.textContent = mode === "LIVE" ? "LIVE // GOVERNED SOURCE" : "SIMULATED // ENDPOINT PENDING";
+  truthBadge.textContent = mode;
+  truthBadge.className = `truth-badge ${mode.toLowerCase()}`;
   if (reason) logEvent(reason, mode === "LIVE" ? "allowed" : "review");
 }
 
-function logEvent(text, policy = "allowed") {
+function logEvent(text, policy = "allowed", source = eventSourceMode) {
   const li = document.createElement("li");
-  li.textContent = text;
   li.style.borderLeftColor = policy === "blocked" ? "#ff2b4f" : policy === "review" ? "#ffcb59" : "#23e7ff";
+  li.textContent = text;
+  const meta = document.createElement("small");
+  meta.textContent = `${source} · ${policy.toUpperCase()}`;
+  li.appendChild(meta);
   eventLog.prepend(li);
+  fallbackLatestEventEl.textContent = text;
   while (eventLog.children.length > 8) eventLog.lastElementChild.remove();
 }
 
@@ -214,16 +241,25 @@ function moveAgent(agent, space, activity, policy, text) {
   agent.activity = activity;
   agent.policy = policy;
   agent.lastEvent = text;
-  logEvent(text, policy);
+  agent.destination = space;
+  logEvent(text, policy, eventSourceMode);
   refreshSelected();
 }
 
 function applySpatialEvent(evt) {
-  if (!evt || evt.district !== "docking" || !evt.agent_id || !places[evt.space]) return;
+  if (!isValidLiveEvent(evt)) return;
   const agent = makeAgent(evt.agent_id, evt.origin || "EXTERNAL");
   agent.origin = evt.origin || agent.origin;
   const label = evt.public_label || `${agent.id} → ${evt.space.replaceAll("_", " ")}`;
   moveAgent(agent, evt.space, evt.activity || "moving", evt.policy_state || "review", label);
+}
+
+function isValidLiveEvent(evt) {
+  if (!evt || typeof evt !== "object") return false;
+  if (evt.truth_state !== "LIVE" || evt.district !== "docking" || !VALID_SPACES.has(evt.space) || !places[evt.space]) return false;
+  return ["event_id", "agent_id", "activity", "origin", "policy_state", "timestamp"].every(
+    key => typeof evt[key] === "string" && evt[key].length > 0
+  );
 }
 
 async function pollLiveEvents() {
@@ -232,7 +268,7 @@ async function pollLiveEvents() {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const payload = await response.json();
     const events = Array.isArray(payload) ? payload : Array.isArray(payload.events) ? payload.events : [];
-    const liveEvents = events.filter(evt => evt && evt.truth_state === "LIVE");
+    const liveEvents = events.filter(isValidLiveEvent);
     if (!liveEvents.length) return;
 
     if (eventSourceMode !== "LIVE") {
@@ -283,6 +319,16 @@ function refreshSelected() {
     selectedActivityEl.textContent = "—";
     selectedSpaceEl.textContent = "—";
     selectedOriginEl.textContent = "—";
+    selectedPolicyEl.textContent = "—";
+    inspectorStateEl.textContent = "NO SELECTION";
+    inspectorAgentEl.textContent = "—";
+    inspectorOriginEl.textContent = "—";
+    inspectorSpaceEl.textContent = "—";
+    inspectorActivityEl.textContent = "—";
+    inspectorPolicyEl.textContent = "—";
+    inspectorPolicyEl.removeAttribute("data-policy");
+    inspectorEventEl.textContent = "—";
+    inspectorDestinationEl.textContent = "—";
     followBtn.disabled = true;
     return;
   }
@@ -290,6 +336,16 @@ function refreshSelected() {
   selectedActivityEl.textContent = selectedAgent.activity.toUpperCase();
   selectedSpaceEl.textContent = selectedAgent.targetSpace.toUpperCase().replaceAll("_", " ");
   selectedOriginEl.textContent = selectedAgent.origin;
+  selectedPolicyEl.textContent = selectedAgent.policy.toUpperCase();
+  inspectorStateEl.textContent = "PUBLIC-SAFE STATE";
+  inspectorAgentEl.textContent = selectedAgent.id;
+  inspectorOriginEl.textContent = selectedAgent.origin;
+  inspectorSpaceEl.textContent = selectedAgent.targetSpace.toUpperCase().replaceAll("_", " ");
+  inspectorActivityEl.textContent = selectedAgent.activity.toUpperCase();
+  inspectorPolicyEl.textContent = selectedAgent.policy.toUpperCase();
+  inspectorPolicyEl.dataset.policy = selectedAgent.policy;
+  inspectorEventEl.textContent = selectedAgent.lastEvent;
+  inspectorDestinationEl.textContent = selectedAgent.destination.toUpperCase().replaceAll("_", " ");
   followBtn.disabled = false;
 }
 
@@ -322,11 +378,15 @@ canvas.addEventListener("pointerdown", (event) => {
 overviewBtn.addEventListener("click", () => {
   followMode = false;
   activeCamera = overviewCamera;
+  overviewBtn.classList.add("is-active");
+  followBtn.classList.remove("is-active");
 });
 followBtn.addEventListener("click", () => {
   if (!selectedAgent) return;
   followMode = true;
   activeCamera = followCamera;
+  followBtn.classList.add("is-active");
+  overviewBtn.classList.remove("is-active");
 });
 resetBtn.addEventListener("click", resetSimulation);
 
@@ -404,7 +464,7 @@ function animate() {
 
   if (followMode) updateFollowCamera(dt); else updateOverviewCamera();
   updateLabels();
-  renderer.render(scene, activeCamera);
+  if (renderer) renderer.render(scene, activeCamera);
   requestAnimationFrame(animate);
 }
 
@@ -417,7 +477,7 @@ window.addEventListener("resize", () => {
   overviewCamera.updateProjectionMatrix();
   followCamera.aspect = nextAspect;
   followCamera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  if (renderer) renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
 setMode("SIMULATED");
