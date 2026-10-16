@@ -1,0 +1,62 @@
+{
+  "contract": "agentropolis.hermes-city.pages-allowlist.v1",
+  "purpose": "Explicit allowlist of files published to GitHub Pages. Anything not listed here is never copied into the Pages artifact. Adding a path requires review that it is a public site asset: no config, receipts, agent instructions, credentials, prompts, or build inputs.",
+  "files": [
+    "index.html",
+    "404.html",
+    "robots.txt",
+    "sitemap.xml",
+    "app.js",
+    "styles.css",
+    "spatial-runtime.js",
+    "spatial-runtime-manifest.json",
+    "mcp-config.js",
+    "mcp-config.json",
+    "mcp-status.js",
+    "mcp-shared.css",
+    "genui-beta.html",
+    "genui-beta.css",
+    "genui-renderer.js",
+    "assets/favicon.svg",
+    "assets/city-card.png",
+    "assets/three.module.js",
+    "assets/THREE_LICENSE.txt",
+    "assets/VENDORED_ASSETS.md",
+    "community/index.html",
+    "social/index.html",
+    "super-hermes/index.html",
+    "realization/index.html",
+    "botmode/index.html",
+    "docking/index.html",
+    "docking/docking.js",
+    "docking/docking.css",
+    "docs/architecture.md"
+  ],
+  "mapped_files": [
+    {
+      "from": "tests/fixtures/genui/market.valid.json",
+      "to": "genui/market.valid.json",
+      "reason": "Public sample manifest rendered by genui-beta.html. The tests/ tree itself is never published."
+    }
+  ],
+  "rewrites": [
+    {
+      "page": "genui-beta.html",
+      "from": "./tests/fixtures/genui/market.valid.json",
+      "to": "./genui/market.valid.json"
+    }
+  ],
+  "built_directories": [
+    {
+      "from": "dist/visual-compute",
+      "to": "visual-compute",
+      "allowed_extensions": [".html", ".js", ".css", ".svg", ".png", ".jpg", ".jpeg", ".webp", ".woff", ".woff2"]
+    }
+  ],
+  "inject_scripts": [
+    {
+      "page": "index.html",
+      "tag": "<script src=\"spatial-runtime.js\" defer></script>"
+    }
+  ]
+}
