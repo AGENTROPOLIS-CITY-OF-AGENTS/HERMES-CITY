@@ -39,8 +39,8 @@
     "irreversible_action": "human_required"
   },
 
-  "receipt_destination": "C:\\Users\\marqu\\wiredchaos\\HERMES-CITY\\receipts\\neuro",
-  "memory_writeback_target": "C:\\Users\\marqu\\wiredchaos\\HERMES-CITY\\memory\\genesis-rag-growth",
+  "receipt_destination": "receipts/neuro",
+  "memory_writeback_target": "memory/genesis-rag-growth",
 
   "shutdown_conditions": [
     "explicit_human_shutdown",
