@@ -224,6 +224,15 @@ textarea:focus-visible {
   transition: opacity 160ms ease;
   will-change: transform;
 }
+.city-label-layer a.city-label {
+  pointer-events: auto;
+  text-decoration: none;
+}
+.city-label-layer a.city-label:hover,
+.city-label-layer a.city-label:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 
 /* Static fallback when WebGL is unavailable */
 .no-webgl #city3d {

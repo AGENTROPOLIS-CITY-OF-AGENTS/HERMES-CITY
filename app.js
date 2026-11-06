@@ -9,6 +9,7 @@ const bootLines = [
   "district: nemoclaw builder works",
   "district: nemotron research council",
   "district: wallet rails commerce lane",
+  "district: chaos mall commerce lane",
   "boundary: public shell only",
   "license: apache-2.0",
   "ready: city interface online"
@@ -87,6 +88,7 @@ function showStaticFallback(canvas) {
     "NemoClaw Works",
     "Nemotron Council",
     "Wallet Rails",
+    "CHAOS MALL",
     "RAILWATCH",
     "Mission Control"
   ];
@@ -146,6 +148,7 @@ function createMiniCity() {
   const cyan = new THREE.Color(0x23e7ff);
   const red = new THREE.Color(0xff2b4f);
   const lime = new THREE.Color(0xb8ff42);
+  const amber = new THREE.Color(0xffb020);
   const purple = new THREE.Color(0xa855f7);
 
   const ground = new THREE.Mesh(
@@ -168,6 +171,7 @@ function createMiniCity() {
     { name: "NemoClaw Works", x: -4.1, z: -2.7, h: 3.7, color: red },
     { name: "Nemotron Council", x: 4.4, z: -2.4, h: 4.2, color: purple },
     { name: "Wallet Rails", x: -4.6, z: 3.4, h: 3.1, color: lime },
+    { name: "CHAOS MALL", x: -2.8, z: 5.8, h: 2.6, w: 2.0, d: 2.0, tier: 0.5, color: amber, url: "https://agentropolis-city-of-agents.github.io/AGENTROPOLIS-CHAOS-MALL/" },
     { name: "RAILWATCH", x: 4.8, z: 3.1, h: 3.4, color: cyan },
     { name: "Mission Control", x: 0.2, z: 5.3, h: 2.8, color: red }
   ];
@@ -179,8 +183,9 @@ function createMiniCity() {
   const labels = [];
 
   districts.forEach((district, index) => {
+    const top = district.h + (district.tier ?? 0);
     const building = new THREE.Mesh(
-      new THREE.BoxGeometry(1.1, district.h, 1.1),
+      new THREE.BoxGeometry(district.w ?? 1.1, district.h, district.d ?? 1.1),
       new THREE.MeshStandardMaterial({
         color: 0x0c1724,
         emissive: district.color,
@@ -192,25 +197,46 @@ function createMiniCity() {
     building.position.set(district.x, district.h / 2, district.z);
     group.add(building);
 
+    if (district.tier) {
+      const tier = new THREE.Mesh(
+        new THREE.BoxGeometry((district.w ?? 1.1) * 0.6, district.tier, (district.d ?? 1.1) * 0.6),
+        new THREE.MeshStandardMaterial({
+          color: 0x0c1724,
+          emissive: district.color,
+          emissiveIntensity: 0.16,
+          metalness: 0.72,
+          roughness: 0.28
+        })
+      );
+      tier.position.set(district.x, district.h + district.tier / 2, district.z);
+      group.add(tier);
+    }
+
     const cap = new THREE.Mesh(
-      new THREE.BoxGeometry(1.25, 0.08, 1.25),
+      new THREE.BoxGeometry((district.w ?? 1.1) + 0.15, 0.08, (district.d ?? 1.1) + 0.15),
       new THREE.MeshBasicMaterial({ color: district.color, transparent: true, opacity: 0.72 })
     );
-    cap.position.set(district.x, district.h + 0.07, district.z);
+    cap.position.set(district.x, top + 0.07, district.z);
     group.add(cap);
 
     const beam = new THREE.Mesh(
       new THREE.CylinderGeometry(0.025, 0.025, 6.5, 16),
       new THREE.MeshBasicMaterial({ color: district.color, transparent: true, opacity: 0.24 })
     );
-    beam.position.set(district.x, district.h + 3.3, district.z);
+    beam.position.set(district.x, top + 3.3, district.z);
     group.add(beam);
 
-    const label = document.createElement("span");
+    const label = document.createElement(district.url ? "a" : "span");
     label.className = "city-label";
     label.textContent = district.name;
+    if (district.url) {
+      label.href = district.url;
+      label.target = "_blank";
+      label.rel = "noopener noreferrer";
+      label.title = "Open CHAOS MALL";
+    }
     labelLayer.appendChild(label);
-    labels.push({ label, position: new THREE.Vector3(district.x, district.h + 0.6, district.z) });
+    labels.push({ label, position: new THREE.Vector3(district.x, top + 0.6, district.z) });
   });
 
   const roadMaterial = new THREE.LineBasicMaterial({ color: 0xff2b4f, transparent: true, opacity: 0.42 });
