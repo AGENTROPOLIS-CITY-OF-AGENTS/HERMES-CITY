@@ -62,7 +62,7 @@ Exit codes:
 | Test | What it verifies |
 |------|-----------------|
 | test_positive_full_triad | Full HERMES -> NEMOCLAW -> NEMOTRON cycle: doctrine retrieval, 16-field packet, bounded execution, exact output, PASS verdict, receipt, memory writeback, no financial authority, human authority retained |
-| test_positive_existing_receipts_intact | The original 4 smoke test receipts + 1 memory entry are preserved on disk |
+| test_positive_existing_receipts_intact | Any pre-existing smoke test receipts and memory entry remain unchanged |
 | test_positive_nemotron_verdicts | NEMOTRON can correctly issue PASS, FAIL, and QUARANTINE verdicts |
 
 ### Negative Tests (8 suites)
@@ -82,7 +82,7 @@ Exit codes:
 
 - Local workspace only — no network calls, no external services
 - Does not modify core Hermes source
-- Does not modify the existing smoke test artifacts (receipts, memory entry)
+- Does not modify existing smoke test artifacts (receipts, memory entry); verifies any available artifacts remain unchanged
 - Test workspaces use tempdir — cleaned up automatically
 - No git operations performed by the test runner
 
