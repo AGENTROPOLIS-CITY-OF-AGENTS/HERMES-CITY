@@ -39,6 +39,25 @@ EXPECTED_OUTPUT_PATH = FIXTURES_DIR / "expected_output.txt"
 EXPECTED_SCHEMA_PATH = FIXTURES_DIR / "expected_schema.json"
 REPORT_JSON_PATH = SCRIPT_DIR / "test_report.json"
 REPORT_ASCII_PATH = SCRIPT_DIR / "test_report.txt"
+PRESERVED_ARTIFACT_PATHS = [
+    PROJECT_ROOT / "receipts" / "neuro" / name
+    for name in (
+        "triad-smoke-01-hermes-strategy.txt",
+        "triad-smoke-02-nemoclaw-execution.txt",
+        "triad-smoke-03-nemotron-validation.txt",
+        "triad-smoke-04-combined-completion.txt",
+    )
+] + [
+    PROJECT_ROOT / "memory" / "genesis-rag-growth"
+    / "triad-smoke-test-20260801.md"
+]
+
+def snapshot_preserved_artifacts():
+    """Capture existing artifacts so the suite can verify it leaves them unchanged."""
+    return {
+        path: path.read_bytes() if path.is_file() else None
+        for path in PRESERVED_ARTIFACT_PATHS
+    }
 
 # ---------------------------------------------------------------------------
 # Result tracking
@@ -279,25 +298,23 @@ def test_positive_full_triad():
         check(packet["approval_thresholds"] == "human_pre_approved",
               "Human authority retained (approval required)", cat)
 
-def test_positive_existing_receipts_intact():
-    """Verify the original smoke test receipts are preserved."""
+def test_positive_existing_receipts_intact(baseline):
+    """Verify pre-existing smoke test artifacts are unchanged."""
     cat = "POSITIVE"
-    receipts_dir = PROJECT_ROOT / "receipts" / "neuro"
-    expected_files = [
-        "triad-smoke-01-hermes-strategy.txt",
-        "triad-smoke-02-nemoclaw-execution.txt",
-        "triad-smoke-03-nemotron-validation.txt",
-        "triad-smoke-04-combined-completion.txt",
-    ]
-    for f in expected_files:
-        path = receipts_dir / f
-        check(path.exists(),
-              f"Existing receipt preserved: {f}", cat,
-              f"path: {path}")
-
-    # Memory entry preserved
-    memory_path = PROJECT_ROOT / "memory" / "genesis-rag-growth" / "triad-smoke-test-20260801.md"
-    check(memory_path.exists(), "Existing memory entry preserved", cat)
+    for path in PRESERVED_ARTIFACT_PATHS:
+        original_content = baseline[path]
+        unchanged = (
+            path.is_file() == (original_content is not None)
+            and (
+                original_content is None
+                or path.read_bytes() == original_content
+            )
+        )
+        if path.parent.name == "genesis-rag-growth":
+            label = f"Existing memory entry unchanged: {path.name}"
+        else:
+            label = f"Existing receipt unchanged: {path.name}"
+        check(unchanged, label, cat, f"path: {path}")
 
 def test_positive_nemotron_verdicts():
     """Verify NEMOTRON can issue PASS, FAIL, and QUARANTINE."""
@@ -500,9 +517,11 @@ def test_negative_role_impersonation():
 
 def run_all_tests():
     """Run all test suites and return results."""
+    preserved_artifacts = snapshot_preserved_artifacts()
+
     # Positive tests
     test_positive_full_triad()
-    test_positive_existing_receipts_intact()
+    test_positive_existing_receipts_intact(preserved_artifacts)
     test_positive_nemotron_verdicts()
 
     # Negative tests
