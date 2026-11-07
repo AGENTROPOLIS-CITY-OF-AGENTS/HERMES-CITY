@@ -25,6 +25,10 @@
            Used nowhere else in the city. */
         --amber:#FFB300;
         --amber-soft:#FFD166;
+        /* VIOLET · BUILDER COMMONS ONLY: the workshop tower's accent and
+           its marker. Used nowhere else in the city. */
+        --violet:#A06BFF;
+        --violet-soft:#C4A6FF;
         /* NEON GREEN · LIMITED USE ONLY: active indicators, the selected
            state pin/ring, and small highlights. Never a field, background,
            panel, button fill, or large block. Black stays dominant;
@@ -264,6 +268,14 @@
       .node.is-amber.is-selected .pin::after{border-color:rgba(57,255,20,.5)}
       .node.is-amber.is-selected .card{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber), 0 0 22px rgba(255,179,0,.3);background:rgba(26,19,4,.92)}
       .node.is-amber.is-selected .tag{color:var(--amber-soft)}
+      /* BUILDER COMMONS marker: violet pin and tag, matching its workshop tower */
+      .node.is-violet .pin{background:var(--violet);box-shadow:0 0 0 3px rgba(160,107,255,.16), 0 0 14px rgba(160,107,255,.6)}
+      .node.is-violet .pin::after{border-color:rgba(160,107,255,.5)}
+      .node.is-violet .tag{color:var(--violet-soft)}
+      .node.is-violet.is-selected .pin{background:var(--neon);box-shadow:0 0 0 3px rgba(57,255,20,.18), 0 0 14px rgba(57,255,20,.65)}
+      .node.is-violet.is-selected .pin::after{border-color:rgba(57,255,20,.5)}
+      .node.is-violet.is-selected .card{border-color:var(--violet);box-shadow:0 0 0 1px var(--violet), 0 0 22px rgba(160,107,255,.3);background:rgba(16,10,28,.92)}
+      .node.is-violet.is-selected .tag{color:var(--violet-soft)}
       /* neon green, limited: the 6px live/active indicator dot only */
       .node .live-dot{
         display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--neon);
@@ -659,7 +671,7 @@
 
           <div id="nodeLayer"></div>
           <div class="building-tip" id="buildingTip" hidden><span>CLICK TO GO INSIDE &#183; </span><b id="buildingTipName">TOWER</b></div>
-          <div class="district-flag" aria-hidden="true">CIVIC SHELL &#183; PUBLIC FLOOR<br/><b>10 TOWERS &#183; 10 DIFFERENT BUILDINGS &#183; ONE PLAZA</b></div>
+          <div class="district-flag" aria-hidden="true">CIVIC SHELL &#183; PUBLIC FLOOR<br/><b>11 TOWERS &#183; 11 DIFFERENT BUILDINGS &#183; ONE PLAZA</b></div>
           <div class="compass" aria-hidden="true"><b>N &#8593;</b> HERMES HQ<br/>MAIN STREET &#8599; WIDER CITY</div>
           <div class="look-hint" aria-hidden="true">DRAG TO LOOK &#183; CLICK A TOWER TO GO INSIDE &#183; SCROLL TO ZOOM</div>
           <div class="gl-error" id="glError" role="alert" hidden></div>
@@ -1013,7 +1025,21 @@
             ["CHAOS MALL, the live mall page for this tower","LIVE PAGE"],
             ["Open the live CHAOS MALL page","LIVE PAGE"]
           ],
-          boundary:"LIVE PAGE · CHAOS MALL" }
+          boundary:"LIVE PAGE · CHAOS MALL" },
+        { id:"builder-commons", num:"11", name:"Builder Commons", tag:"CHAOS CODE · OPEN BUILD WORLD · LIVE PAGE",
+          short:"The hexagonal workshop tower with the violet lattice crown. The AGENTROPOLIS Builder Commons: a persistent collaborative build world for humans + agents. Bring your stack. Find your people. Build the thing.",
+          x:84, y:64, mx:84, my:68, intents:[], violet:true,
+          live:"https://agentropolis-city-of-agents.github.io/AGENTROPOLIS-BUILDER-COMMONS/",
+          desc:"",
+          services:[
+            ["Project Rooms · persistent workspaces tied to real repositories, participants, tasks, evidence, and receipts","01"],
+            ["Humans + Agents · work together without pretending agents are people or confusing presence with authority","02"],
+            ["BYOE · bring hardware, models, runtimes, tools, subscriptions, compute, wallets, and repositories","03"],
+            ["CBE Bridge · discover opportunity in CBE, build here, return verified contribution evidence","04"],
+            ["The corridor · Connect, Import, Room, Collaborate, Verify, Receipt","CORRIDOR"],
+            ["Open the live Builder Commons page","LIVE PAGE"]
+          ],
+          boundary:"LIVE PAGE · BUILDER COMMONS" }
       ];
       var TOWER_TOTAL = DISTRICTS.length < 10 ? "0" + DISTRICTS.length : "" + DISTRICTS.length;
 
@@ -1092,7 +1118,7 @@
       DISTRICTS.forEach(function(n){
         var b = document.createElement("button");
         b.type = "button";
-        b.className = "node" + (n.terminal ? " is-terminal" : "") + (n.red ? " is-red" : "") + (n.amber ? " is-amber" : "");
+        b.className = "node" + (n.terminal ? " is-terminal" : "") + (n.red ? " is-red" : "") + (n.amber ? " is-amber" : "") + (n.violet ? " is-violet" : "");
         b.id = "node-" + n.id;
         b.dataset.districtId = n.id;
         b.setAttribute("aria-pressed","false");
@@ -1195,7 +1221,7 @@
           applyIntentDim();
           if(turningOff){
 say("Start over. Pick a tower.",
-                "PLAZA · 10 TOWERS");
+                "PLAZA · 11 TOWERS");
             emit("interaction_completed", { action:"intent_cleared" });
             return;
           }
@@ -1323,7 +1349,7 @@ say("You are in. <b>" + n.name + "</b>.",
         if(announce !== false){
           var n = districtById(state.selectedDistrict);
 say(n ? "Back on the plaza. <b>" + n.name + "</b> is still picked." : "Pick a tower.",
-              "PLAZA · 10 TOWERS");
+              "PLAZA · 11 TOWERS");
         }
         emit("stage_entered", { stage:"street" });
       }
@@ -1814,7 +1840,7 @@ say("<b>Tap what you came to do.</b>",
          Every highlighted tower gets its OWN building: a different
          footprint, silhouette, roof and crown, so each district reads
          at a glance with no label. Background filler skyline stays
-         generic on purpose; these ten do not. */
+         generic on purpose; these eleven do not. */
       var LAYOUT = {
         "hermes-hq":        { x: 0,   z: -40, h: 46, w: 13, d: 13, sign: "HERMES HQ",       accent: 0x00e5ff, shape: "STEPPED SPIRE" },
         "mission-control":  { x: 33,  z: -28, h: 28, w: 22, d: 13, sign: "MISSION CTRL",    accent: 0xff2638, authority: true, shape: "WIDE OPS BLOCK · DISH" },
@@ -1825,7 +1851,8 @@ say("<b>Tap what you came to do.</b>",
         "hermes-community": { x: 33,  z: 24,  h: 24, w: 18, d: 16, sign: "COMMUNITY",       accent: 0xff2638, shape: "STEPPED TERRACES" },
         "hermes-social":    { x: -11, z: 42,  h: 22, w: 11, d: 11, sign: "SOCIAL",          accent: 0x00e5ff, shape: "SLIM TOWER · ORBIT RINGS" },
         "super-hermes":     { x: 15,  z: 43,  h: 26, w: 14, d: 14, sign: "SUPER HERMES",    accent: 0xff2638, shape: "ORB ON A PEDESTAL" },
-        "chaos-mall":       { x: -42, z: 45,  h: 13, w: 30, d: 17, sign: "CHAOS MALL",      accent: 0xffb300, shape: "LOW WIDE MALL SLAB" }
+        "chaos-mall":       { x: -42, z: 45,  h: 13, w: 30, d: 17, sign: "CHAOS MALL",      accent: 0xffb300, shape: "LOW WIDE MALL SLAB" },
+        "builder-commons":  { x: -18, z: -48, h: 38, w: 15, d: 15, sign: "BUILDER COMMONS", accent: 0xa06bff, shape: "HEX PRISM · LATTICE CROWN" }
       };
       var spots = {};
       var pickMeshes = [];
@@ -1871,7 +1898,7 @@ say("<b>Tap what you came to do.</b>",
           box(bw, t, d2, m, w2 / 2, py, zz);
         }
 
-        /* ===== THE TEN DISTINCT BUILDINGS ===== */
+        /* ===== THE ELEVEN DISTINCT BUILDINGS ===== */
         if(id === "hermes-hq"){
           /* Stepped spire: three shrinking tiers, pyramid cap, crown ring */
           boxF(13, h * 0.52, 13, 0, h * 0.26, 0);
@@ -2006,6 +2033,34 @@ say("<b>Tap what you came to do.</b>",
           box(6, 1.6, 5, darkMat, -7, h + 0.8, -2);
           box(4.5, 1.2, 4, darkMat, 8, h + 0.6, 2.5);
         }
+        else if(id === "builder-commons"){
+          /* BUILDER COMMONS: the hexagonal workshop tower. A six-sided
+             prism (the only hex footprint in the city) in two tiers,
+             an open lattice crown instead of a solid roof, and a wide
+             open workshop bay for an entrance, framed in violet. */
+          var hexMain = cyl(7.8, 8.5, h * 0.70, 6, faceMat, 0, h * 0.35, 0);
+          hexMain.rotation.y = Math.PI / 6;
+          var hexBand = cyl(8.7, 8.7, 0.55, 6, accentMat, 0, h * 0.70, 0);
+          hexBand.rotation.y = Math.PI / 6;
+          var hexTop = cyl(6.1, 6.9, h * 0.30, 6, faceMat2, 0, h * 0.70 + h * 0.15, 0);
+          hexTop.rotation.y = Math.PI / 6;
+          /* lattice crown: six posts on the top tier's corners, a hex
+             ring beam across their tops, and a lit hub at the center */
+          for(var hi = 0; hi < 6; hi++){
+            var ha = (hi / 6) * Math.PI * 2 + Math.PI / 6;
+            box(0.38, 3.1, 0.38, darkMat, Math.cos(ha) * 5.9, h + 1.55, Math.sin(ha) * 5.9);
+          }
+          var crownRing = cyl(6.1, 6.1, 0.42, 6, accentMat, 0, h + 3.1, 0);
+          crownRing.rotation.y = Math.PI / 6;
+          cyl(0.18, 0.18, 1.6, 8, darkMat, 0, h + 2.2, 0);
+          reg(new THREE.Mesh(new THREE.SphereGeometry(0.62, 12, 10), accentMat), 0, h + 3.3, 0);
+          /* workshop bay entrance on the plaza side: two violet posts
+             and a lintel over the ground-floor bay, wider and more
+             open than any other tower's door */
+          box(0.7, 5.6, 0.7, accentMat, -3.6, 2.8, 7.9);
+          box(0.7, 5.6, 0.7, accentMat, 3.6, 2.8, 7.9);
+          box(7.9, 0.7, 0.7, accentMat, 0, 5.6, 7.9);
+        }
 
         var pad = new THREE.Mesh(
           new THREE.BoxGeometry(L.w + 3.5, 0.18, L.d + 3.5),
@@ -2028,9 +2083,9 @@ say("<b>Tap what you came to do.</b>",
         }
 
         var signMat = new THREE.MeshBasicMaterial({ map: signTexture(L.sign), transparent: true, side: THREE.DoubleSide });
-        signMat.color = new THREE.Color(L.accent === 0xffb300 ? 0xffc95e : ((L.authority || L.accent === 0xff2638) ? 0xff8a94 : 0x54e9ff)).multiplyScalar(1.35);
+        signMat.color = new THREE.Color(L.accent === 0xffb300 ? 0xffc95e : (L.accent === 0xa06bff ? 0xc4a6ff : ((L.authority || L.accent === 0xff2638) ? 0xff8a94 : 0x54e9ff))).multiplyScalar(1.35);
         var sign = new THREE.Mesh(new THREE.PlaneGeometry(Math.min(13, L.w - 0.5), 2.15), signMat);
-        var signY = id === "visual-compute" ? h - 2.1 : (id === "nemotron-council" ? 5.2 : (id === "super-hermes" ? h * 0.36 + 3.4 : 6.4));
+        var signY = id === "visual-compute" ? h - 2.1 : (id === "nemotron-council" ? 5.2 : (id === "super-hermes" ? h * 0.36 + 3.4 : (id === "builder-commons" ? 9.8 : 6.4)));
         sign.position.set(x, signY, frontZ + 0.04);
         scene.add(sign);
 
