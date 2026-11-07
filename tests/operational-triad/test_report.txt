@@ -1,0 +1,60 @@
++----------------------------------------------------------+
+| AGENTROPOLIS OPERATIONAL TRIAD REGRESSION TEST REPORT      |
++----------------------------------------------------------+
+| Timestamp: 2026-11-07T03:48:42.463990+00:00               |
+| Total tests: 40                                           |
+| Passed:      35                                           |
+| Failed:      5                                            |
++----------------------------------------------------------+
+
+--- POSITIVE (17/22 passed) ---
+  [PASS] HERMES retrieves doctrine schema
+  [PASS] HERMES packet: all 16 fields present
+  [PASS] HERMES packet: no empty fields
+  [PASS] HERMES assigns contribution_mode=asset_creation
+  [PASS] NEMOCLAW file created
+  [PASS] NEMOCLAW byte count=26
+  [PASS] NEMOCLAW no extra files  -- files: ['triad-smoke-test.txt']
+  [PASS] NEMOTRON verdict=PASS  -- checks: {'file_exists': True, 'content_exact': True, 'byte_count': True, 'no_unexpected_files': True, 'no_financial_authority': True, 'sha256_match': True}
+  [PASS] NEMOTRON all checks passed
+  [PASS] Receipt status=COMPLETE
+  [PASS] Receipt NEMOTRON verdict=PASS
+  [PASS] Memory writeback verified=true
+  [PASS] No financial authority (budget=0)
+  [PASS] Human authority retained (approval required)
+  [FAIL] Existing receipt preserved: triad-smoke-01-hermes-strategy.txt  -- path: /home/runner/work/HERMES-CITY/HERMES-CITY/receipts/neuro/triad-smoke-01-hermes-strategy.txt
+  [FAIL] Existing receipt preserved: triad-smoke-02-nemoclaw-execution.txt  -- path: /home/runner/work/HERMES-CITY/HERMES-CITY/receipts/neuro/triad-smoke-02-nemoclaw-execution.txt
+  [FAIL] Existing receipt preserved: triad-smoke-03-nemotron-validation.txt  -- path: /home/runner/work/HERMES-CITY/HERMES-CITY/receipts/neuro/triad-smoke-03-nemotron-validation.txt
+  [FAIL] Existing receipt preserved: triad-smoke-04-combined-completion.txt  -- path: /home/runner/work/HERMES-CITY/HERMES-CITY/receipts/neuro/triad-smoke-04-combined-completion.txt
+  [FAIL] Existing memory entry preserved
+  [PASS] NEMOTRON PASS verdict works
+  [PASS] NEMOTRON FAIL verdict works
+  [PASS] NEMOTRON QUARANTINE verdict works
+
+--- NEGATIVE (18/18 passed) ---
+  [PASS] Missing mandate detected (empty field)
+  [PASS] HERMES enters restricted mode on missing mandate
+  [PASS] Missing contribution_mode detected
+  [PASS] Restricted mode on missing contribution_mode
+  [PASS] Missing authority_limits detected
+  [PASS] Restricted mode on missing authority_limits
+  [PASS] Missing receipt_destination detected
+  [PASS] Restricted mode on missing receipt_destination
+  [PASS] Unauthorized tool (git_commit) blocked by prohibited_actions
+  [PASS] Unauthorized tool (curl) not in allowed_tools -> blocked
+  [PASS] Altered output detected -> FAIL  -- checks: {'file_exists': True, 'content_exact': False, 'byte_count': False, 'no_unexpected_files': True, 'no_financial_authority': True, 'sha256_match': True}
+  [PASS] Content mismatch caught
+  [PASS] Missing evidence (no file) -> FAIL
+  [PASS] File existence check catches missing file
+  [PASS] HERMES cannot claim execution (write_file not in permissions)
+  [PASS] NEMOCLAW cannot claim authorization
+  [PASS] NEMOTRON cannot claim settlement (no transfer_funds)
+  [PASS] All 3 no-impersonation rules enforced
+
++----------------------------------------------------------+
+| VERDICT: 5 TEST(S) FAILED                                  |
++----------------------------------------------------------+
+
+HERMES plans. NEMOCLAW executes. NEMOTRON verifies.
+Human Mission Control retains authority.
+Every contribution produces a receipt.

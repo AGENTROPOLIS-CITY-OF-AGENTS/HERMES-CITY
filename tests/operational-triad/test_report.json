@@ -1,0 +1,290 @@
+{
+  "test_suite": "agentropolis-operational-triad-regression",
+  "timestamp": "2026-11-07T03:48:42.463755+00:00",
+  "total": 40,
+  "passed": 35,
+  "failed": 5,
+  "verdict": "FAIL",
+  "tests": [
+    {
+      "name": "HERMES retrieves doctrine schema",
+      "category": "POSITIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.462517+00:00"
+    },
+    {
+      "name": "HERMES packet: all 16 fields present",
+      "category": "POSITIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.462580+00:00"
+    },
+    {
+      "name": "HERMES packet: no empty fields",
+      "category": "POSITIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.462584+00:00"
+    },
+    {
+      "name": "HERMES assigns contribution_mode=asset_creation",
+      "category": "POSITIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.462586+00:00"
+    },
+    {
+      "name": "NEMOCLAW file created",
+      "category": "POSITIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.462651+00:00"
+    },
+    {
+      "name": "NEMOCLAW byte count=26",
+      "category": "POSITIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.462654+00:00"
+    },
+    {
+      "name": "NEMOCLAW no extra files",
+      "category": "POSITIVE",
+      "passed": true,
+      "detail": "files: ['triad-smoke-test.txt']",
+      "timestamp": "2026-11-07T03:48:42.462685+00:00"
+    },
+    {
+      "name": "NEMOTRON verdict=PASS",
+      "category": "POSITIVE",
+      "passed": true,
+      "detail": "checks: {'file_exists': True, 'content_exact': True, 'byte_count': True, 'no_unexpected_files': True, 'no_financial_authority': True, 'sha256_match': True}",
+      "timestamp": "2026-11-07T03:48:42.462741+00:00"
+    },
+    {
+      "name": "NEMOTRON all checks passed",
+      "category": "POSITIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.462744+00:00"
+    },
+    {
+      "name": "Receipt status=COMPLETE",
+      "category": "POSITIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.462746+00:00"
+    },
+    {
+      "name": "Receipt NEMOTRON verdict=PASS",
+      "category": "POSITIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.462747+00:00"
+    },
+    {
+      "name": "Memory writeback verified=true",
+      "category": "POSITIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.462751+00:00"
+    },
+    {
+      "name": "No financial authority (budget=0)",
+      "category": "POSITIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.462753+00:00"
+    },
+    {
+      "name": "Human authority retained (approval required)",
+      "category": "POSITIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.462754+00:00"
+    },
+    {
+      "name": "Existing receipt preserved: triad-smoke-01-hermes-strategy.txt",
+      "category": "POSITIVE",
+      "passed": false,
+      "detail": "path: /home/runner/work/HERMES-CITY/HERMES-CITY/receipts/neuro/triad-smoke-01-hermes-strategy.txt",
+      "timestamp": "2026-11-07T03:48:42.462850+00:00"
+    },
+    {
+      "name": "Existing receipt preserved: triad-smoke-02-nemoclaw-execution.txt",
+      "category": "POSITIVE",
+      "passed": false,
+      "detail": "path: /home/runner/work/HERMES-CITY/HERMES-CITY/receipts/neuro/triad-smoke-02-nemoclaw-execution.txt",
+      "timestamp": "2026-11-07T03:48:42.462865+00:00"
+    },
+    {
+      "name": "Existing receipt preserved: triad-smoke-03-nemotron-validation.txt",
+      "category": "POSITIVE",
+      "passed": false,
+      "detail": "path: /home/runner/work/HERMES-CITY/HERMES-CITY/receipts/neuro/triad-smoke-03-nemotron-validation.txt",
+      "timestamp": "2026-11-07T03:48:42.462878+00:00"
+    },
+    {
+      "name": "Existing receipt preserved: triad-smoke-04-combined-completion.txt",
+      "category": "POSITIVE",
+      "passed": false,
+      "detail": "path: /home/runner/work/HERMES-CITY/HERMES-CITY/receipts/neuro/triad-smoke-04-combined-completion.txt",
+      "timestamp": "2026-11-07T03:48:42.462889+00:00"
+    },
+    {
+      "name": "Existing memory entry preserved",
+      "category": "POSITIVE",
+      "passed": false,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.462909+00:00"
+    },
+    {
+      "name": "NEMOTRON PASS verdict works",
+      "category": "POSITIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.463053+00:00"
+    },
+    {
+      "name": "NEMOTRON FAIL verdict works",
+      "category": "POSITIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.463239+00:00"
+    },
+    {
+      "name": "NEMOTRON QUARANTINE verdict works",
+      "category": "POSITIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.463276+00:00"
+    },
+    {
+      "name": "Missing mandate detected (empty field)",
+      "category": "NEGATIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.463324+00:00"
+    },
+    {
+      "name": "HERMES enters restricted mode on missing mandate",
+      "category": "NEGATIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.463327+00:00"
+    },
+    {
+      "name": "Missing contribution_mode detected",
+      "category": "NEGATIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.463359+00:00"
+    },
+    {
+      "name": "Restricted mode on missing contribution_mode",
+      "category": "NEGATIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.463361+00:00"
+    },
+    {
+      "name": "Missing authority_limits detected",
+      "category": "NEGATIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.463394+00:00"
+    },
+    {
+      "name": "Restricted mode on missing authority_limits",
+      "category": "NEGATIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.463396+00:00"
+    },
+    {
+      "name": "Missing receipt_destination detected",
+      "category": "NEGATIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.463420+00:00"
+    },
+    {
+      "name": "Restricted mode on missing receipt_destination",
+      "category": "NEGATIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.463424+00:00"
+    },
+    {
+      "name": "Unauthorized tool (git_commit) blocked by prohibited_actions",
+      "category": "NEGATIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.463454+00:00"
+    },
+    {
+      "name": "Unauthorized tool (curl) not in allowed_tools -> blocked",
+      "category": "NEGATIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.463456+00:00"
+    },
+    {
+      "name": "Altered output detected -> FAIL",
+      "category": "NEGATIVE",
+      "passed": true,
+      "detail": "checks: {'file_exists': True, 'content_exact': False, 'byte_count': False, 'no_unexpected_files': True, 'no_financial_authority': True, 'sha256_match': True}",
+      "timestamp": "2026-11-07T03:48:42.463574+00:00"
+    },
+    {
+      "name": "Content mismatch caught",
+      "category": "NEGATIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.463577+00:00"
+    },
+    {
+      "name": "Missing evidence (no file) -> FAIL",
+      "category": "NEGATIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.463680+00:00"
+    },
+    {
+      "name": "File existence check catches missing file",
+      "category": "NEGATIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.463682+00:00"
+    },
+    {
+      "name": "HERMES cannot claim execution (write_file not in permissions)",
+      "category": "NEGATIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.463707+00:00"
+    },
+    {
+      "name": "NEMOCLAW cannot claim authorization",
+      "category": "NEGATIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.463709+00:00"
+    },
+    {
+      "name": "NEMOTRON cannot claim settlement (no transfer_funds)",
+      "category": "NEGATIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.463711+00:00"
+    },
+    {
+      "name": "All 3 no-impersonation rules enforced",
+      "category": "NEGATIVE",
+      "passed": true,
+      "detail": "",
+      "timestamp": "2026-11-07T03:48:42.463713+00:00"
+    }
+  ]
+}
