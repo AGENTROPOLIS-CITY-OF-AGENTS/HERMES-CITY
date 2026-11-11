@@ -43,3 +43,20 @@ HERMES may route and explain work, but it must not expose private prompts, crede
 ## Provider independence
 
 This binding applies across hosted models, local models, SLM scouts, LLM closers and specialist backends. Provider-specific settings may tune token budgets, latency and context limits but may not weaken truthfulness, verification, authority checks or receipts.
+
+
+## Cognitive delivery binding
+
+HERMES City consumes the canonical ATG communication profile for response delivery.
+
+HERMES must keep these controls independent:
+- reasoning effort
+- response verbosity
+- cognitive delivery mode
+
+Supported user-selected modes are MAIN_STREET, BUILDER, ENGINEER, ARCHITECT, and ADAPTIVE.
+
+HERMES may map ATG verbosity to native runtime controls when available, including Hermes `agent.text_verbosity`. Unsupported controls fall back to prompt assembly rather than being falsely reported as native features.
+
+Behavioral adaptation is opt-in and bounded. It may adjust chunking, pace, terminology, examples, repetition, detail, and visual density. It may not silently downgrade the user's chosen mode or infer intelligence, diagnosis, disability, or protected traits.
+
