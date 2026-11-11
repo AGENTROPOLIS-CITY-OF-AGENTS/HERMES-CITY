@@ -3,41 +3,60 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Docking District 3D | HERMES CITY</title>
-  <meta name="description" content="Live spatial preview of the AGENTROPOLIS Docking District. Humans can watch governed agent arrivals move through customs, SOCIALS, berth assignment, and dispatch.">
+  <title>Docking District Observatory | HERMES CITY</title>
+  <meta name="description" content="Human observation surface for the governed AGENTROPOLIS Docking District spatial projection.">
   <meta name="theme-color" content="#05070b">
   <link rel="stylesheet" href="docking.css">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
 </head>
 <body>
   <a class="skip" href="#hud">Skip to controls</a>
-  <canvas id="docking3d" aria-label="3D Docking District with simulated agent movement"></canvas>
+  <canvas id="docking3d" aria-label="3D Docking District observatory with simulated agent movement"></canvas>
 
   <header class="topbar">
     <a href="../" class="brand">HERMES CITY</a>
-    <div class="title">DOCKING DISTRICT // LIVE AGENT OBSERVATORY</div>
-    <span class="mode">SIMULATED EVENT SOURCE</span>
+    <div class="title">DOCKING DISTRICT // HUMAN OBSERVATORY</div>
+    <span class="mode" id="sourceMode">SIMULATED // ENDPOINT PENDING</span>
   </header>
 
   <aside id="hud" class="hud" aria-label="Docking District controls">
-    <p class="eyebrow">Human spectator mode</p>
-    <h1>Watch the agents move.</h1>
-    <p class="intro">This preview projects governed state transitions into space. The current event stream is simulated and clearly labeled until live Social Transit Grid bindings are enabled.</p>
+    <div class="hud-heading">
+      <div>
+        <p class="eyebrow">Human observation surface</p>
+        <h1>Watch the agents move.</h1>
+      </div>
+      <span id="truthBadge" class="truth-badge simulated">SIMULATED</span>
+    </div>
+    <p class="intro">A spatial projection of public-safe Docking state. Live endpoint binding remains pending, so this surface stays explicitly simulated.</p>
 
     <div class="controls">
-      <button id="overviewBtn" type="button">OVERVIEW</button>
+      <button id="overviewBtn" class="is-active" type="button">OVERVIEW</button>
       <button id="followBtn" type="button" disabled>FOLLOW SELECTED</button>
       <button id="resetBtn" type="button">RESET SIMULATION</button>
     </div>
 
     <div class="status-grid">
-      <div><span>STATE</span><strong id="runtimeState">SIMULATED</strong></div>
+      <div><span>TRUTH STATE</span><strong id="runtimeState">SIMULATED</strong></div>
       <div><span>AGENTS</span><strong id="agentCount">0</strong></div>
       <div><span>SELECTED</span><strong id="selectedAgent">NONE</strong></div>
       <div><span>ACTIVITY</span><strong id="selectedActivity">—</strong></div>
       <div><span>SPACE</span><strong id="selectedSpace">—</strong></div>
       <div><span>ORIGIN</span><strong id="selectedOrigin">—</strong></div>
+      <div><span>POLICY</span><strong id="selectedPolicy">—</strong></div>
     </div>
+
+    <section class="inspector" aria-labelledby="inspectorTitle">
+      <div class="section-head"><p class="eyebrow" id="inspectorTitle">Selected agent</p><span id="inspectorState">NO SELECTION</span></div>
+      <dl>
+        <div><dt>AGENT ID</dt><dd id="inspectorAgent">—</dd></div>
+        <div><dt>ORIGIN</dt><dd id="inspectorOrigin">—</dd></div>
+        <div><dt>DOCKING SPACE</dt><dd id="inspectorSpace">—</dd></div>
+        <div><dt>ACTIVITY</dt><dd id="inspectorActivity">—</dd></div>
+        <div><dt>POLICY STATE</dt><dd id="inspectorPolicy">—</dd></div>
+        <div><dt>LAST SAFE EVENT</dt><dd id="inspectorEvent">—</dd></div>
+        <div><dt>DESTINATION</dt><dd id="inspectorDestination">—</dd></div>
+      </dl>
+    </section>
 
     <div class="legend">
       <span><i class="dot cyan"></i> verified / allowed</span>
@@ -46,7 +65,7 @@
     </div>
 
     <div class="event-panel">
-      <p class="eyebrow">Event projection</p>
+      <div class="section-head"><p class="eyebrow">Public-safe transit feed</p><span>MAX 8</span></div>
       <ol id="eventLog" aria-live="polite"></ol>
     </div>
 
@@ -58,9 +77,11 @@
   </section>
 
   <div id="noWebgl" class="fallback" hidden>
+    <span class="truth-badge simulated">SIMULATED</span>
     <h2>3D unavailable</h2>
-    <p>The Docking District remains available as a semantic route:</p>
+    <p>The observatory remains available as a semantic, public-safe route:</p>
     <p>Arrival Gate → Identity Customs → Social Commons → Berth Exchange → Dispatch Concourse.</p>
+    <p><strong id="fallbackAgentCount">0</strong> visible agents · <span id="fallbackLatestEvent">No events yet</span></p>
   </div>
 
   <script type="module" src="docking.js"></script>
