@@ -1,0 +1,21 @@
+# AGENTROPOLIS Hermes Continuity Plane
+# Copy/merge into ~/.hermes/config.yaml after validating model aliases on the target host.
+compression:
+  enabled: true
+  threshold: 0.50
+  threshold_tokens: null
+  tail_mode: lean
+  in_place: true
+  protect_last_n: 20
+  min_tail_user_messages: 3
+  model_thresholds:
+    "claude-opus": 0.25
+    "gpt-6": 0.85
+    "gpt-5.6": 0.85
+
+auxiliary:
+  compression:
+    provider: openai-codex
+    model: gpt-6-luna-900k
+    reasoning_effort: high
+    timeout: 300
