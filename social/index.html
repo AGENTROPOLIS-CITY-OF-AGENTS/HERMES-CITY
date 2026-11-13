@@ -6,6 +6,10 @@
   <meta name="description" content="The AGENTROPOLIS Social Transit Grid powers the governed HERMES Social Surface across Web2, messaging, community, and Web3 networks.">
   <title>HERMES Social Surface | AGENTROPOLIS</title>
   <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="./hero.css">
+  <script type="importmap">
+    {"imports":{"three":"../assets/three.module.js"}}
+  </script>
 </head>
 <body>
   <div class="grid-bg"></div>
@@ -21,15 +25,52 @@
   </header>
 
   <main class="subpage-main">
-    <section class="section page-hero">
-      <div class="reveal">
-        <p class="eyebrow">AGENTROPOLIS Social Transit Grid</p>
-        <h1>One governed surface for every social channel.</h1>
-        <p class="lede">HERMES Social replaces platform-specific side panels with a modular, platform-agnostic command surface for Web2, messaging, community, and Web3 networks.</p>
-        <div class="hero-actions">
-          <a class="button primary" href="#surface">Inspect the surface</a>
-          <a class="button ghost" href="#governance">Review execution controls</a>
+    <section class="social-hero" aria-label="HERMES Social Transit Grid hero">
+      <div class="social-stage" id="socialStage">
+        <canvas id="transitCanvas" aria-hidden="true"></canvas>
+        <div class="social-vignette" aria-hidden="true"></div>
+        <p class="social-preview-badge">PREVIEW &#183; NOT LIVE</p>
+        <div class="social-hero-copy">
+          <p class="eyebrow">AGENTROPOLIS Social Transit Grid</p>
+          <h1>One governed surface for every social channel.</h1>
+          <p class="lede">HERMES Social replaces platform-specific side panels with a modular, platform-agnostic command surface for Web2, messaging, community, and Web3 networks.</p>
+          <div class="hero-actions">
+            <a class="button primary" href="#surface">Inspect the surface</a>
+            <a class="button ghost" href="#governance">Review execution controls</a>
+          </div>
         </div>
+        <p class="social-counts"><b>19 NAMED CHANNELS &#183; 4 CLASSES &#183; ONE GOVERNED SURFACE</b></p>
+        <div class="social-class-cards">
+          <article class="social-class-card">
+            <p class="class-num">CLASS 01</p>
+            <h3>Web2 Social</h3>
+            <p>X, LinkedIn, Instagram, Facebook, Threads, TikTok, YouTube, and Reddit.</p>
+            <span class="class-tag">8 NETWORKS</span>
+          </article>
+          <article class="social-class-card is-red">
+            <p class="class-num">CLASS 02</p>
+            <h3>Community</h3>
+            <p>Discord, Telegram, WhatsApp, Slack, and future messaging systems.</p>
+            <span class="class-tag">4 NETWORKS + FUTURE</span>
+          </article>
+          <article class="social-class-card">
+            <p class="class-num">CLASS 03</p>
+            <h3>Web3 Social</h3>
+            <p>Farcaster, Bluesky, Lens, Mirror, Paragraph, Guild, Snapshot, and future protocols.</p>
+            <span class="class-tag">7 PROTOCOLS</span>
+          </article>
+          <article class="social-class-card is-red">
+            <p class="class-num">CLASS 04</p>
+            <h3>Public Boundary</h3>
+            <p>This page documents the architecture. Operational connectors and credentials remain private.</p>
+            <span class="class-tag"><span class="live-dot" aria-hidden="true"></span>PUBLIC-SAFE ONLY</span>
+          </article>
+        </div>
+        <div class="social-fallback" id="transitFallback" hidden>
+          <p><strong>3D transit grid unavailable.</strong> The governed surface below remains mapped.</p>
+          <ul><li>Web2 Social</li><li>Community</li><li>Web3 Social</li><li>Public Boundary</li></ul>
+        </div>
+        <p id="transitState" hidden>TRANSIT PENDING</p>
       </div>
     </section>
 
@@ -107,5 +148,250 @@ composer / drafts / approval queue</pre>
 
   <footer class="footer"><p>HERMES Social Surface by WIRED CHAOS. Public-safe architecture for the AGENTROPOLIS Social Transit Grid.</p></footer>
   <script type="module" src="../app.js"></script>
+  <script type="module">
+    import * as THREE from "three";
+    (function(){
+      var state = document.getElementById("transitState");
+      var fallback = document.getElementById("transitFallback");
+      var canvas = document.getElementById("transitCanvas");
+      var stage = document.getElementById("socialStage");
+      var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      function fail(){
+        if (fallback) fallback.hidden = false;
+        if (state) state.textContent = "TRANSIT UNAVAILABLE";
+      }
+      var gl = null;
+      try { gl = canvas.getContext("webgl2") || canvas.getContext("webgl"); } catch (e) { gl = null; }
+      if (!gl) { fail(); return; }
+      try {
+        var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, reduced ? 1 : 1.8));
+        var scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x04070c);
+        scene.fog = new THREE.FogExp2(0x04070c, 0.016);
+        var camera = new THREE.PerspectiveCamera(50, 1, 0.1, 200);
+        camera.position.set(0, 22, 40);
+        camera.lookAt(0, 1, 0);
+
+        /* --- canvas textures: emissive windows, plaza rings --- */
+        function winTexture(lit){
+          var c = document.createElement("canvas"); c.width = 256; c.height = 256;
+          var g = c.getContext("2d");
+          g.fillStyle = "#070a0f"; g.fillRect(0, 0, 256, 256);
+          var seed = 7;
+          function rnd(){ seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+          for (var y = 10; y < 246; y += 18) {
+            for (var x = 10; x < 246; x += 18) {
+              if (rnd() < 0.55) {
+                g.fillStyle = lit;
+                g.globalAlpha = 0.55 + rnd() * 0.45;
+                g.fillRect(x, y, 10, 12);
+              }
+            }
+          }
+          g.globalAlpha = 1;
+          var t = new THREE.CanvasTexture(c);
+          t.colorSpace = THREE.SRGBColorSpace;
+          return t;
+        }
+        function plazaTexture(){
+          var c = document.createElement("canvas"); c.width = c.height = 1024;
+          var g = c.getContext("2d");
+          g.fillStyle = "#070a10"; g.fillRect(0, 0, 1024, 1024);
+          var cx = 512, cy = 512;
+          for (var r = 500; r > 60; r -= 44) {
+            g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2);
+            g.strokeStyle = "rgba(0,229,255," + (r % 88 === 0 ? 0.30 : 0.13) + ")";
+            g.lineWidth = r % 88 === 0 ? 3 : 1.5; g.stroke();
+          }
+          for (var i = 0; i < 36; i++) {
+            var a = (i / 36) * Math.PI * 2;
+            g.beginPath();
+            g.moveTo(cx + Math.cos(a) * 74, cy + Math.sin(a) * 74);
+            g.lineTo(cx + Math.cos(a) * 500, cy + Math.sin(a) * 500);
+            g.strokeStyle = "rgba(0,229,255,.10)"; g.lineWidth = 1.5; g.stroke();
+          }
+          g.beginPath(); g.arc(cx, cy, 66, 0, Math.PI * 2);
+          g.fillStyle = "#0a1420"; g.fill();
+          g.strokeStyle = "rgba(0,229,255,.55)"; g.lineWidth = 3; g.stroke();
+          var t = new THREE.CanvasTexture(c);
+          t.colorSpace = THREE.SRGBColorSpace;
+          return t;
+        }
+        var winCyan = winTexture("#9beaff");
+        var winRed = winTexture("#ffb0a0");
+        function hubMaterial(tex, tint){
+          return new THREE.MeshStandardMaterial({
+            color: tint, roughness: 0.5, metalness: 0.4,
+            emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.85
+          });
+        }
+        var roofMat = new THREE.MeshStandardMaterial({ color: 0x070a0f, roughness: 0.9, metalness: 0.2 });
+        var darkMat = new THREE.MeshStandardMaterial({ color: 0x0a0e14, roughness: 0.6, metalness: 0.4 });
+
+        var group = new THREE.Group();
+        group.scale.setScalar(1.25);
+        scene.add(group);
+
+        /* ground + plaza disc + ring road */
+        var ground = new THREE.Mesh(
+          new THREE.PlaneGeometry(300, 300),
+          new THREE.MeshStandardMaterial({ color: 0x04060a, roughness: 1, metalness: 0 }));
+        ground.rotation.x = -Math.PI / 2; ground.position.y = -0.05; ground.receiveShadow = true;
+        group.add(ground);
+        var plaza = new THREE.Mesh(
+          new THREE.CircleGeometry(15, 72),
+          new THREE.MeshStandardMaterial({ map: plazaTexture(), roughness: 0.34, metalness: 0.55 }));
+        plaza.rotation.x = -Math.PI / 2; plaza.position.y = 0.01;
+        group.add(plaza);
+        var ringRoad = new THREE.Mesh(
+          new THREE.RingGeometry(11.5, 13.5, 72),
+          new THREE.MeshStandardMaterial({ color: 0x0a0d12, roughness: 0.3, metalness: 0.6 }));
+        ringRoad.rotation.x = -Math.PI / 2; ringRoad.position.y = 0.03;
+        group.add(ringRoad);
+
+        /* central transit hub: cylinder base, pole, pulsing cyan beacon */
+        var base = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.6, 1, 28), darkMat);
+        base.position.set(0, 0.5, 0); group.add(base);
+        var pole = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 6.5), darkMat);
+        pole.position.set(0, 4.2, 0); group.add(pole);
+        var beacon = new THREE.Mesh(new THREE.SphereGeometry(0.55, 14, 12),
+          new THREE.MeshBasicMaterial({ color: new THREE.Color(0x00e5ff).multiplyScalar(1.8) }));
+        beacon.position.set(0, 7.8, 0); group.add(beacon);
+
+        /* orbit rings around the hub */
+        [4.4, 6.4, 8.4].forEach(function(rad, i){
+          var ring = new THREE.Mesh(new THREE.TorusGeometry(rad, 0.02, 8, 160),
+            new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.30 - i * 0.06 }));
+          ring.rotation.x = Math.PI / 2; ring.position.y = 0.06 + i * 0.05;
+          group.add(ring);
+        });
+
+        /* --- four channel-class hubs: each its own building --- */
+        function box(w, h, d, mat, x, y, z){
+          var m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+          m.position.set(x, y, z); group.add(m); return m;
+        }
+        function cyl(rt, rb, h, seg, mat, x, y, z){
+          var m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), mat);
+          m.position.set(x, y, z); group.add(m); return m;
+        }
+        var cyanHub = hubMaterial(winCyan, 0x0a0d12);
+        var redHub = hubMaterial(winRed, 0x140b0e);
+        var cyanCap = new THREE.MeshStandardMaterial({ color: 0x06222b, roughness: 0.4, metalness: 0.4, emissive: 0x00e5ff, emissiveIntensity: 0.55 });
+        var redCap = new THREE.MeshStandardMaterial({ color: 0x2b0a10, roughness: 0.4, metalness: 0.4, emissive: 0xff2638, emissiveIntensity: 0.55 });
+        var glassMat = new THREE.MeshStandardMaterial({ color: 0x0a2531, roughness: 0.16, metalness: 0.65,
+          emissive: 0x00e5ff, emissiveIntensity: 0.32 });
+        var domeMat = new THREE.MeshStandardMaterial({ color: 0x0a1a24, roughness: 0.25, metalness: 0.6,
+          emissive: 0x00e5ff, emissiveIntensity: 0.12 });
+
+        /* Web2 Social: stepped spire, cyan, at the back */
+        box(4.0, 2.8, 4.0, cyanHub, 0, 1.4, -11.5);
+        box(2.9, 1.9, 2.9, cyanHub, 0, 3.75, -11.5);
+        box(1.8, 1.4, 1.8, cyanHub, 0, 5.4, -11.5);
+        var cap1 = cyl(0.15, 1.3, 1.6, 4, darkMat, 0, 6.9, -11.5); cap1.rotation.y = Math.PI / 4;
+        var crown1 = new THREE.Mesh(new THREE.TorusGeometry(1.8, 0.06, 8, 40), redCap);
+        crown1.rotation.x = Math.PI / 2; crown1.position.set(0, 4.7, -11.5); group.add(crown1);
+
+        /* Community: twin slabs + sky bridge, red, left */
+        box(1.6, 5.2, 3.4, redHub, -9.6, 2.6, 0.5);
+        box(1.6, 4.2, 3.4, redHub, -6.4, 2.1, 0.5);
+        box(3.4, 0.5, 3.0, glassMat, -8.0, 4.6, 0.5);
+        box(3.8, 0.12, 3.8, redCap, -9.6, 5.3, 0.5);
+
+        /* Web3 Social: round dome council, cyan, right */
+        cyl(2.6, 2.9, 3.2, 24, cyanHub, 9.6, 1.6, 0.5);
+        var dome = new THREE.Mesh(new THREE.SphereGeometry(2.3, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), domeMat);
+        dome.position.set(9.6, 3.2, 0.5); group.add(dome);
+        cyl(0.1, 0.1, 1.4, 8, darkMat, 9.6, 6.0, 0.5);
+        var orb = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 10),
+          new THREE.MeshBasicMaterial({ color: new THREE.Color(0x00e5ff).multiplyScalar(1.6) }));
+        orb.position.set(9.6, 6.9, 0.5); group.add(orb);
+
+        /* Public Boundary: low vault + corner posts, red, front */
+        box(5.2, 2.2, 3.4, redHub, 0, 1.1, 9.8);
+        box(5.6, 0.14, 3.8, redCap, 0, 2.3, 9.8);
+        [[-2.4, 8.3], [2.4, 8.3], [-2.4, 11.3], [2.4, 11.3]].forEach(function(p){
+          cyl(0.12, 0.12, 2.6, 8, darkMat, p[0], 1.3, p[1]);
+        });
+
+        /* --- transit nodes + lines: network nodes on the ring road --- */
+        var nodePts = [];
+        var nodeColors = [0x00e5ff, 0x00e5ff, 0xff2638, 0x00e5ff, 0x00e5ff, 0x39ff7a, 0x00e5ff, 0xff2638];
+        for (var i = 0; i < 8; i++) {
+          var a = (i / 8) * Math.PI * 2 + Math.PI / 8;
+          var nx = Math.cos(a) * 12.5, nz = Math.sin(a) * 12.5;
+          var col = nodeColors[i];
+          var node = new THREE.Mesh(new THREE.SphereGeometry(0.34, 14, 12),
+            new THREE.MeshBasicMaterial({ color: new THREE.Color(col).multiplyScalar(1.5) }));
+          node.position.set(nx, 0.5, nz); group.add(node);
+          var stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.5, 8), darkMat);
+          stalk.position.set(nx, 0.25, nz); group.add(stalk);
+          nodePts.push(new THREE.Vector3(nx, 0.5, nz));
+        }
+        var lineMatCyan = new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.55 });
+        var lineMatRed = new THREE.LineBasicMaterial({ color: 0xff2638, transparent: true, opacity: 0.55 });
+        var origin = new THREE.Vector3(0, 0.5, 0);
+        nodePts.forEach(function(p, idx){
+          var mat = (idx === 2 || idx === 7) ? lineMatRed : lineMatCyan;
+          group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([origin, p]), mat));
+        });
+        for (var j = 0; j < 8; j++) {
+          var p1 = nodePts[j], p2 = nodePts[(j + 1) % 8];
+          var mid = p1.clone().add(p2).multiplyScalar(0.5); mid.y = 1.4;
+          var curve = new THREE.QuadraticBezierCurve3(p1, mid, p2);
+          group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(curve.getPoints(24)), lineMatCyan));
+        }
+
+        /* starfield */
+        var starCount = 320;
+        var pos = new Float32Array(starCount * 3);
+        for (var s = 0; s < starCount; s++) {
+          pos[s * 3] = (Math.random() - 0.5) * 120;
+          pos[s * 3 + 1] = Math.random() * 40 + 4;
+          pos[s * 3 + 2] = (Math.random() - 0.5) * 120;
+        }
+        var starGeo = new THREE.BufferGeometry();
+        starGeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+        scene.add(new THREE.Points(starGeo,
+          new THREE.PointsMaterial({ color: 0x00e5ff, size: 0.06, transparent: true, opacity: 0.6 })));
+
+        scene.add(new THREE.AmbientLight(0x8fb8ff, 0.5));
+        var key = new THREE.PointLight(0x00e5ff, 120, 60); key.position.set(0, 10, 4); scene.add(key);
+        var accent = new THREE.PointLight(0xff2638, 80, 50); accent.position.set(-9, 5, 6); scene.add(accent);
+
+        function size(){
+          var w = stage.clientWidth, h = stage.clientHeight;
+          if (w < 2 || h < 2) return;
+          camera.aspect = w / h;
+          /* narrow screens see a cropped slice of the grid: pull back so the whole transit ring reads */
+          if (camera.aspect < 0.8) camera.position.set(0, 26, 54);
+          else camera.position.set(0, 22, 40);
+          camera.lookAt(0, 1, 0);
+          camera.updateProjectionMatrix();
+          renderer.setSize(w, h, false);
+        }
+        size();
+        if (window.ResizeObserver) new ResizeObserver(size).observe(stage);
+        window.addEventListener("resize", size);
+
+        var clock = new THREE.Clock();
+        var frames = 0;
+        function animate(){
+          var t = clock.getElapsedTime();
+          if (!reduced) group.rotation.y = t * 0.05;
+          var pulse = 1 + Math.sin(t * 2.2) * 0.18;
+          beacon.scale.set(pulse, pulse, pulse);
+          renderer.render(scene, camera);
+          frames += 1;
+          if (frames === 1 && state) state.textContent = "TRANSIT LIVE";
+          if (!reduced) requestAnimationFrame(animate);
+        }
+        animate();
+      } catch (err) {
+        fail();
+      }
+    })();
+  </script>
 </body>
 </html>
