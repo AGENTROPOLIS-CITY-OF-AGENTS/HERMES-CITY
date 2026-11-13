@@ -36,30 +36,14 @@ jobs:
       - name: Build Visual Compute
         run: npm run build
 
-      - name: Assemble public-safe site
-        run: |
-          mkdir -p _site
-          rsync -a \
-            --exclude='.git' \
-            --exclude='node_modules' \
-            --exclude='dist' \
-            --exclude='_site' \
-            --exclude='visual-compute' \
-            ./ _site/
-          mkdir -p _site/visual-compute
-          cp -a dist/visual-compute/. _site/visual-compute/
+      - name: Assemble allowlisted Pages artifact
+        run: python3 scripts/pages_artifact.py assemble --out _site
 
-      - name: Activate Agentropolis spatial runtime
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          p = Path('_site/index.html')
-          s = p.read_text()
-          tag = '<script src="spatial-runtime.js" defer></script>'
-          if tag not in s:
-              s = s.replace('</head>', f'  {tag}\n</head>')
-              p.write_text(s)
-          PY
+      - name: Fail if artifact contains a non-allowlisted or denylisted path
+        run: python3 scripts/pages_artifact.py verify --site _site
+
+      - name: Pages artifact denylist tests
+        run: python3 -m unittest -v tests/test_pages_artifact.py
 
       - name: Configure Pages
         if: github.event_name != 'pull_request'

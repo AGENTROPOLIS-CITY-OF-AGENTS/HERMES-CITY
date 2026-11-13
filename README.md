@@ -207,9 +207,11 @@ Managed access must retain BYOK, BYOH, local-tool, and human-review fallback lan
 
 ## GitHub Pages
 
-The site deploys automatically from `main` using `.github/workflows/pages.yml`.
+The site deploys from `main` using `.github/workflows/pages.yml`.
 
-The deployment contains static public files only. No production secrets, social tokens, wallet credentials, or private runtime configuration belong in this repository.
+The workflow publishes an explicit allowlist (`scripts/pages-allowlist.json`): the static files the public pages reference, plus the Visual Compute build output. It does not copy the repository. The verify step fails the build if the artifact contains any other path, including `SOUL.md`, `AGENTS.md`, `config/**`, `RECEIPTS/**`, and `.env*`.
+
+No production secrets, social tokens, wallet credentials, or private runtime configuration belong in this repository.
 
 Live URL: https://wiredchaos.github.io/HERMES-CITY/
 
